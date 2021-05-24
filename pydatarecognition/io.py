@@ -167,7 +167,7 @@ def rank_write(cif_ranks, output_path):
     return rank_doi_pearson_txt
 
 
-def terminal_print(rank_doi_pearson_txt)
+def terminal_print(rank_doi_pearson_txt):
     '''
     given an iterable object, the object is printed to the terminal, encapsulated by 80 dashes before and after.
     
