@@ -8,4 +8,4 @@ xonsh
 scikit-beam
 matplotlib-base
 sympy
-bg_mpl_stylesheet
+# bg_mpl_stylesheet
