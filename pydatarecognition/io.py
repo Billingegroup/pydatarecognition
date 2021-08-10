@@ -1,5 +1,5 @@
 import numpy as np
-import yaml
+import json
 import CifFile
 from diffpy.structure.parsers.p_cif import _fixIfWindowsPath
 from diffpy.utils.parsers.loaddata import loadData
@@ -24,7 +24,7 @@ def cif_read(cif_file_path):
     if not cache.exists():
         cache.mkdir()
     acache = cache / f"{cif_file_path.stem}.npy"
-    mcache = cache / f"{cif_file_path.stem}.yml"
+    mcache = cache / f"{cif_file_path.stem}.json"
 
     cachegen = cache.glob("*.npy")
     index = list(set([file.stem for file in cachegen]))
@@ -34,7 +34,7 @@ def cif_read(cif_file_path):
         q = qi[0]
         intensity = qi[1]
         with open(mcache) as o:
-            meta = yaml.safe_load(o)
+            meta = json.load(o)
         po = PowderCif(cif_file_path.stem[0:6], "invnm", q, intensity)
     else:
         print("Getting from Cif File")
@@ -67,7 +67,7 @@ def cif_read(cif_file_path):
         with open(acache, "wb") as o:
             np.save(o, np.array([po.q, po.intensity]))
         with open(mcache, "w") as o:
-            yaml.safe_dump({"iucrid": str(po.iucrid),
+            json.dump({"iucrid": str(po.iucrid),
                             "wavelength": po.wavelength},o)
     except AttributeError:
         pass
