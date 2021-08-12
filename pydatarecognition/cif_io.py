@@ -71,7 +71,11 @@ def cif_read(cif_file_path):
             yaml.safe_dump({"iucrid": str(po.iucrid),
                             "wavelength": po.wavelength},o)
     except AttributeError:
-        pass
+        with open(acache, "wb") as o:
+            np.save(o, np.array([None, po.intensity]))
+        with open(mcache, "w") as o:
+            yaml.safe_dump({"iucrid": str(po.iucrid),
+                            "wavelength": po.wavelength}, o)
 
     return po
 
