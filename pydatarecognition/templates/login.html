@@ -1,0 +1,20 @@
+{% extends "cifsearch_template.html" %}
+
+{% block body %}
+    <link rel= "stylesheet" type="text/css" href= "{{url_for('static',path='/css/bootstrap-social.css') }}">
+    <div class="col-container w3-margin-top">
+        <div class="col-3 w3-container w3-center">
+{#            <h2>Sign in</h2><br>#}
+            <p>Please sign in to access all the features of the CIF Powder Search Project. You can use one of the authentication providers as follows.</p>
+            <p>Please note that your account is linked to both your email and the authentication provider (e.g., Google). </p>
+            <p>By signing in you are agreeing to the CIF Powder Search <a href="{{url_for('footer_term') }}" style="color:blue;text-decoration: none">Terms of Use</a> and <a href="{{url_for('footer_privacy') }}" style="color:blue;text-decoration: none">Privacy Policy</a>.</p>
+            <br>
+            <br>
+            <a class="btn btn-block btn-social btn-lg btn-google" href="{{url_for('google_login')}}" style="font-size:25px;text-decoration: none;padding-top: 5px;padding-bottom: 5px;padding-right: 5px">
+                <span class="fab fa-google" style="font-size:30px;padding-top: 0px;"></span> Sign in with Google
+            </a>
+        </div>
+    </div>
+
+{% endblock %}
+

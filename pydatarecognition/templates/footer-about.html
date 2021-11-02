@@ -1,0 +1,65 @@
+{% extends "cifsearch_template.html" %}
+
+{% block body %}
+
+<div class="w3-row-padding w3-center w3-margin-top">
+
+    <div class="w3-cell-row" style="position:relative;text-align:middle;margin: 0 auto;float: none;max-width: 1100px">
+        <div class="w3-section">
+            <h3>About the CIF Powder Search</h3>
+            <p>
+                This is a cloud-based platform for CIF based literature search.
+            </p>
+            <p>
+                This web site should help chemists, physicists,
+                earth scientists and anyone interested in material structure search the literature for similar data
+            </p>
+            <p>
+                CIF Powder Search is free to use for academic research. However, by using, you are agreeing to the <a href="{{url_for('footer_term') }}" style="color:blue;text-decoration: none">Terms of Use</a> and <a href="{{url_for('footer_privacy') }}" style="color:blue;text-decoration: none">Privacy Policy</a>.
+            </p>
+            <p>
+                <a href="https://thebillingegroup.com/" style="color:blue;text-decoration: none" target="_blank">The Billinge Group</a>, Columbia University.
+            </p>
+        </div>
+
+        <div class="w3-section" style="padding-top: 10px;">
+            <h4>Director</h4>
+            <p>
+                <a href="https://apam.columbia.edu/faculty/simon-billinge" style="color:blue;text-decoration: none" target="_blank">Simon J. L. Billinge</a>
+            </p>
+            <p>
+                Professor, Department of Applied Physics and Applied Mathematics,<br>
+                Columbia University
+            </p>
+            <p>
+                Physicist, Brookhaven National Laboratory
+            </p>
+
+            <h4 style="padding-top: 5px">Co-Investigators</h4>
+{#            <p>#}
+{#                <a href="https://www.ornl.gov/staff-profile/matthew-g-tucker" style="color:blue;text-decoration: none" target="_blank">Matt Tucker </a> Oak Ridge National Laboratory#}
+{#            </p>#}
+{#            <p>#}
+{#                <a href="https://chem.ku.dk/ansatte/alle/?pure=en/persons/540779" style="color:blue;text-decoration: none" target="_blank">Kirsten Jensen </a> University of Copenhagen#}
+{#          </p>#}
+        </div>
+
+        <div class="w3-section" style="padding-top: 10px;">
+            <h3>Partners and Support</h3>
+          <img src="/static/img/columbia_bw.png" width="100px">
+{#          <img src="/static/img/nsf_bw.png" width="100px">#}
+{#            <p>#}
+{#                This material is based upon work supported by the National Science Foundation under Grant DMREF-1534910.#}
+{#            </p>#}
+{#            <p>#}
+{#                Any opinions, findings, and conclusions or recommendations expressed in this material#}
+{#              are those of the author(s) and do not necessarily reflect the views of the National Science Foundation.#}
+{#          </p>#}
+
+        </div>
+
+    </div>
+</div>
+
+
+{% endblock %}

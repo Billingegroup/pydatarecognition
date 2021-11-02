@@ -1,0 +1,67 @@
+{% extends "cifsearch_template.html" %}
+
+{% block body %}
+
+<div class="w3-row-padding w3-center w3-margin-top">
+    <div  class="w3-row-padding">
+        <a href="{{url_for('cif_search') }}"><img src="{{url_for('static', path='/img/cif_search_logo.png') }}" alt="cifLogo" style="width:100px;float:right"></a>
+        <a href="{{url_for('cif_search') }}" style="text-decoration: none"><h2 style="float:middle">Literature Search</h2></a>
+    </div>
+
+        <div class="w3-row-padding" style="position:relative;text-align:left">
+        <p>This will accept a file containing powder data and search the database for matching literature.</p>
+        </div>
+
+        <div class="w3-row-padding" style="position:relative;text-align:left">
+        <form class="w3-container w3-card-4" method=POST action="{{url_for('upload_data_cif') }}" enctype="multipart/form-data">
+
+            <div class="w3-section">
+                <label for = "file">File Containing Powder Data: </label>
+                <input type="file" name="user_input" id="file" required>
+            </div>
+             <div class="w3-section">
+                <label for = "wavelength">Wavelength: </label>
+                <input type="text" name = "wavelength" placeholder="e.g.: 0.15482" required>
+            </div>
+            <div class="w3-section">
+                <p>Filter Query using Mongo Query Language (not required)</p>
+                <label for = "filer_key">Filter Key: </label>
+                <input type="text" name = "filer_key" placeholder="iucrid">
+            </div>
+            <div class="w3-section">
+                <label for = "filter_value">Filter Value: </label>
+                <input type="text" name = "filter_value" placeholder="bm5088">
+            </div>
+            <div class="w3-section">
+                <label for = "xtype">X Axis Units: </label>
+                <input type="radio" value="twotheta" name = "datatype" required>
+                <label for="twotheta">TwoTheta</label>&nbsp &nbsp &nbsp
+                <input type="radio" value="q" name = "datatype">
+                <label for="q">Q</label>
+            </div>
+            <div class="w3-section">
+                <input type="submit" value="Submit">
+            </div>
+        </form>
+{% if result != None %}
+        <div class="w3-container w3-card-4" style="position:relative;text-align:left">
+            <div class="w3-section" style="text-align:center">
+                <img src="{{ base64img }}" alt="CIF Ranking" >
+            </div>
+            <div class="w3-section">
+                {% autoescape false %}
+                  {{result | replace("\n", "<br/>")}}
+                {% endautoescape %}
+            </div>
+        </div>
+{% endif %}
+    </div>
+</div>
+
+
+
+
+{#<meta http-equiv="refresh" content="3;url={{url_for('data_viz_cif_search') }}" />#}
+
+
+{% endblock %}

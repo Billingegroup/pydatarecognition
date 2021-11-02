@@ -8,7 +8,7 @@ from pymongo import MongoClient
 from pymongo import errors as mongo_errors
 from xonsh.lib import subprocess
 from xonsh.lib.os import rmtree
-from pydatarecognition.powdercif import storage, BUCKET_NAME
+from pydatarecognition.powdercif import Storage, BUCKET_NAME
 from google.cloud.exceptions import Conflict
 
 
@@ -35,7 +35,7 @@ def cif_mongodb_client(populated: bool = False) -> MongoClient:
     The collection will contain the test_cif_full from the inputs folder
     """
     try:
-        storage_client = storage.Client()
+        storage_client = Storage.Client()
     except:
         print("Failed to connect to test storage bucket")
         yield False
@@ -99,7 +99,7 @@ def cif_mongodb_client(populated: bool = False) -> MongoClient:
     shut_down_fork(forked, repo)
     if not OUTPUT_FAKE_DB:
         rmtree(repo)
-        storage_client = storage.Client()
+        storage_client = Storage.Client()
         cif_bucket = storage_client.get_bucket(BUCKET_NAME)
         cif_bucket.delete(force=True)
 

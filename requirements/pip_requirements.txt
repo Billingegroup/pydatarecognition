@@ -1,1 +1,3 @@
+gcloud-aio-storage
+# weak point in libraries, can easily be replaced by following pydantic fastapi mongo implementation tutorials
 odmantic

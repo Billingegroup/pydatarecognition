@@ -36,12 +36,22 @@ can be found below.
 - update your dependencies
   ```shell
   conda install --file requirements/run.txt
+  pip install -r requirements/pip_requirements.txt
   ```
+- Currently, there are three usernames and passwords required in order to develop the website. One for oauth (env var),
+  mongo atlas (yaml file opened in script), for google cloud storage (json file pointed at by ENV var). The latter can
+  be ascertained as described above. The former two have been described below.
 - Add a secret username and password to a yml file in the pydatarecognition folder named secret_password.yml
   - These should take the following form (you replace the <>, removing the <>)
   ```yaml
   username: <username>
   password: <password>
+  ```
+- Add an oauth login page to your google cloud platform account () and add the following variables to a .env file in the 
+  pydatarecognition directory
+  ```shell
+  GOOGLE_CLIENT_ID=<client_id_for_oauth>
+  GOOGLE_CLIENT_SECRET=<client_secret_for_oauth>
   ```
 - run the following command from the base dir terminal to run the app
   ```shell

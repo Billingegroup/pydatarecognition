@@ -44,7 +44,7 @@ def iinvd_plot(inv_d, i):
     return id_plot
 
 
-def rank_plot(q_reg, userdata_resampled_int, cif_rank_pearson_list, cif_dict, png_path):
+def rank_plot(q_reg, userdata_resampled_int, cif_rank_pearson_list, cif_dict, png_path=None):
     cifdata_q_reg, cifdata_resampled_intensity = [], []
     for i in range(0, 5):
         file = cif_rank_pearson_list[i][0]
@@ -77,6 +77,8 @@ def rank_plot(q_reg, userdata_resampled_int, cif_rank_pearson_list, cif_dict, pn
         axs[i].text(0.875 * x_max, 0.65 * y_max, f'Rank: {i}')
         axs[i].set_yticks([])
         axs[i].set_ylim(y_min - 0.1*y_range, y_max + 0.1*y_range)
-    plt.savefig(png_path / 'rank_plot.png', bbox_inches='tight')
-
+    if png_path:
+        plt.savefig(png_path / 'rank_plot.png', bbox_inches='tight')
+    else:
+        return fig
     return None

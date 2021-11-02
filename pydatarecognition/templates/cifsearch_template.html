@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CIF Search</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-black.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css">
+  <link rel= "stylesheet" type="text/css" href= "{{url_for('static',path='/css/df_style.css') }}">
+  <link rel= "stylesheet" type="text/css" href= "{{url_for('static',path='/css/site_style.css') }}">
+  <link rel= "stylesheet" type="text/css" href= "{{url_for('static',path='/css/dropdown_style.css') }}">
+  <link rel="shortcut icon" href="{{url_for('static', path='/img/cif_search_logo.png') }}">
+  {% block head %}{% endblock %}
+
+</head>
+
+<body style="padding-bottom: 50px">
+
+<!-- Side Navigation -->
+<nav class="w3-sidebar w3-bar-block w3-card w3-animate-left w3-center" style="display:none;" id="mySidebar">
+  <h1 class="w3-xxxlarge w3-text-theme">Navigation</h1>
+  <button class="w3-bar-item w3-button" onclick="w3_close()" style="margin-left: 11px">Hide <i class="fa fa-remove"></i></button>
+  <a href="{{url_for('home') }}" class="w3-bar-item w3-button">Home</a>
+  <a href="{{url_for('cif_search') }}" class="w3-bar-item w3-button">Search Interface</a>
+  <a href="{{url_for('get_documentation') }}" class="w3-bar-item w3-button">Rest API Documentation</a>
+</nav>
+
+<!-- Header -->
+<header class="w3-container" id="myHeader">
+  <i onclick="w3_open()" class="fa fa-bars w3-xlarge w3-button w3-theme" style="position:absolute;left:15px;top:15px"></i>
+  {% if user == None %}
+  <a class="w3-button w3-theme" href="{{url_for('login')}}" style="position:absolute;right:15px;top:15px">Log In</a>
+  {% else %}
+      <div class="dropdown" style="position:absolute;right:15px;top:15px">
+          <button class="dropbtn">Welcome, {{user}}<img src={{img}} style="width:35px;margin-left: 10px"></button>
+          <div class="dropdown-content">
+{#              <a href="{{url_for('profile')}}">My Profile</a>#}
+{#              <a href="{{url_for('activity')}}">My Activities</a>#}
+              <a href="{{url_for('logout')}}">Logout</a>
+          </div>
+      </div>
+  {%endif%}
+  <div class="w3-center w3-padding-48">
+    <h1 class="w3-xxxlarge">
+      <a href="{{url_for('home') }}" style="text-decoration: none;"><img src="{{url_for('static', path='/img/cif_search_logo.png') }}" style="width:60px;margin-left: -73px"> CIF POWDER SEARCH</a>
+    </h1>
+  </div>
+</header>
+
+{% block body %}{% endblock %}
+
+<!-- Footer -->
+<footer  style="position:fixed;bottom:0px;width:100%;" class="w3-container">
+    <p style="color:#fff;text-align:center"> <a href="{{url_for('footer_about') }}" style="text-decoration: none">About</a> | <a href="{{url_for('footer_privacy') }}" style="text-decoration: none">Privacy Policy | <a href="{{url_for('footer_term') }}" style="text-decoration: none">Terms of Use</a> </a>  </p>
+</footer>
+{#<footer style="position:fixed;bottom:0px;width:100%" class="w3-container">#}
+{#  <p style="color:#fff">Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a>, Flask, and Dash</p>#}
+{#</footer>#}
+
+<script>
+function w3_open() {
+  var x = document.getElementById("mySidebar");
+  x.style.width = "30%";
+  x.style.fontSize = "20px";
+  x.style.paddingTop = "3%";
+  x.style.display = "block";
+}
+function w3_close() {
+  document.getElementById("mySidebar").style.display = "none";
+}
+
+</script>
+
+</body>
+
+
+</html>
