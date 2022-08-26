@@ -58,15 +58,15 @@ Navigate to `docs/examples` where `cifs` and `powder_data` folders are present.
 
 #### Running the program the first example file
 ```shell
-python -m pydatarecognition.main -i 01_Mg-free-whitlockite_wl=1.540598.txt --xquantity twotheta --xunit deg -w 1.540598
+pydatarecognition -i 01_Mg-free-whitlockite_wl=1.540598.txt --xquantity twotheta --xunit deg -w 1.540598
 ```
 #### Running the program for the second example file
 ```shell
-python -m pydatarecognition.main -i 02_BaTiO3_wl=0.1665.txt --xquantity twotheta --xunit deg -w 0.1665
+pydatarecognition -i 02_BaTiO3_wl=0.1665.txt --xquantity twotheta --xunit deg -w 0.1665
 ```
 #### Running the program for the third example file
 ```shell
-python -m pydatarecognition.main -i 03_(KNaLi)NbMnO3_perovskite_wl=1.5482.txt --xquantity twotheta --xunit deg -w 1.5482
+pydatarecognition -i 03_(KNaLi)NbMnO3_perovskite_wl=1.5482.txt --xquantity twotheta --xunit deg -w 1.5482
 ```
 
 ### Program output
