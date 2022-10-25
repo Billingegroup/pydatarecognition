@@ -2,6 +2,9 @@ import numpy as np
 import pytest
 from datetime import date
 from habanero import Crossref
+from pydatarecognition.utils import data_sample, pearson_correlate, xy_resample, get_formatted_crossref_reference, \
+    hr_to_mr_number_and_esd, mr_to_hr_number_and_esd, round_number_esd
+
 from scipy.stats import pearsonr, spearmanr, kendalltau
 from pydatarecognition.utils import (data_sample, pearson_correlate, xy_resample, get_formatted_crossref_reference,
                                      correlate, get_iucr_doi, rank_returns)
@@ -96,6 +99,36 @@ def test_get_formatted_crossref_reference(monkeypatch):
     assert actual == expected
 
 
+def test_hr_to_mr_number_and_esd():
+    number_esd = ["343.44(45)", "324908.435(67)", "0.0783(1)", "11(1)", "51(13)", "243(6)", "3205(300)"]
+    actual = hr_to_mr_number_and_esd(number_esd)
+    expected = [343.4, 324908.44, 0.0783, 11, 51, 243, 3200], [0.5, 0.07, 0.0001, 1, 13, 6, 300]
+    assert actual == expected
+
+
+def test_mr_to_hr_number_and_esd():
+    number = [123.5, 123.3, 123.417, 123.367, 123.12, 132.1, 19, 125, 154, 1200, 2, 1, 2.1, 2.1, 2.14, 7.26, 50, 11]
+    esd = [0.5, 0.5, 0.326, 0.2, 0.13, 0.236, 2, 20, 20, 207, 1, 1.4, 0.2, 0.25, 0.14, 100, 100, 2]
+    actual = mr_to_hr_number_and_esd(number, esd)
+    expected = ['123.5(5)', '123.3(5)', '123.4(3)', '123.4(2)', '123.12(13)', '132.1(2)', '19(2)', '130(20)', '150(20)',
+                '1200(200)', '2(1)', '0(1)', '2.1(2)', '2.1(3)', '2.14(14)', '0(100)', '0(100)', '11(2)']
+    assert actual == expected
+
+
+def test_round_number_esd():
+    number = [123.45, 123.3, 123.35, 123.31, 123.12, 132.124, 19, 123, 145, 1234,
+              1.99, 1, 2.145, 2.146, 2.144, 10, 11, 10.6]
+    esd = [0.4521, 0.4673, 0.309, 0.213, 0.125, 0.145, 2.4, 21.32, 14.5, 145,
+           0.99, 1.11, 0.145, 0.146, 0.144, 100.99, 111, 1.72]
+    number_exp = [123.5, 123.3, 123.4, 123.3, 123.12, 132.1, 19, 120, 150, 1200,
+                  2, 0, 2.1, 2.1, 2.14, 0, 0, 11]
+    esd_exp = [0.5, 0.5, 0.3, 0.2, 0.13, 0.2, 2, 20, 20, 200,
+               1, 1, 0.2, 0.2, 0.14, 100, 100, 2]
+    actual = round_number_esd(number, esd)
+    expected = (number_exp, esd_exp)
+    assert actual == expected
+
+    
 def test_correlate():
     y1, y2 = np.linspace(0, 10, 11), [0.1, 0.9, 2, 3.2, 4.3, 4.8, 5.9, 7, 7.9, 9, 9.8]
     actual = correlate(y1, y2)

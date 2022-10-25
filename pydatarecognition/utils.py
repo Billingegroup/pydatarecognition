@@ -229,7 +229,168 @@ def get_formatted_crossref_reference(doi):
     return ref, ref_date
 
 
-def correlate(y1, y2, corr_type='pearson'):
+def round_number_esd(number, esd):
+    '''
+    Rounds each element in number and each element in esd (estimated standard deviation) arrays.
+
+    Esd is rounded to one significant figure if esd > 1.44E**x.(NB: 1.45E**x will become 2E**x)
+    If esd <= 1.44E**x the esd is rounded to two significant figures.
+    Number is rounded to the order of the rounded esd.
+
+    Parameters
+    ----------
+    number : array-like
+        The array containing numbers to be rounded.
+    esd : array-like
+        The array containing esds to be rounded.
+
+    Returns
+    -------
+    list
+        The list containing rounded numbers as floats and/or integers.
+    list
+        The list containing rounded esds as floats and/or integers.
+
+    '''
+    # Empty lists to append to.
+    number_rounded, esd_rounded = [], []
+
+    # Loop through all elements in number (and esd) arrays.
+    for i in range(len(number)):
+
+        # Getting the value and value error to be rounded.
+        val, val_err = number[i], esd[i]
+
+        # Turn val_err into scientific notation.
+        val_err_sci = f"{val_err:.5E}"
+
+        # If val < val_err than set the value to 0 and the significant figures to 1.
+        if val < val_err:
+            val, sig_figs = 0, 1
+
+        # Inspect first significant figure of val_err_sci.
+        # If the first significant figure is 1, we need to inspect the next.
+        # Else, we can set the number of significant figures to 1.
+        elif int(val_err_sci[0]) == 1:
+            # Inspect the second significant figure.
+            # Take care of cases where we always want 2 significant figures:
+            # val_err < 1.4E**x
+            if int(val_err_sci[2]) < 4:
+                sig_figs = 2
+
+            # Inspect the edge case of the second significant figure.
+            # Make sure that we round up, if val_err >= 1.45E**x,
+            # and set the number of significant figures to 1.
+            # Else round down (that is, if val_err < 1.45E**x).
+            # and the set number of significant figures to 2.
+            elif int(val_err_sci[2]) == 4:
+                if int(val_err_sci[3]) >= 5:
+                    val_err_sci = f"{val_err_sci[0:2]}5{val_err_sci[3::]}"
+                    val_err = float(val_err_sci)
+                    sig_figs = 1
+                else:
+                    sig_figs = 2
+            else:
+                sig_figs = 1
+        else:
+            sig_figs = 1
+
+        # Get the order of magnitude of the val_err.
+        n = int(np.log10(val_err))
+
+        # Take into account if we need to 'correct' the order of magnitude.
+        # Related to the 'scale' below.
+        if val_err >= 1:
+            n += 1
+
+        # Set the scale, considering number of significant figures,
+        # and the order of magnitude.
+        scale = 10 ** (sig_figs - n)
+
+        # Use floor rounding. Add 0.5 to make sure that we round up for halfs.
+        # (However, remember that np.floor always rounds down...)
+        val = np.floor(val * scale + 0.5) / scale
+        val_err = np.floor(val_err * scale + 0.5) / scale
+
+        # Take into account, if the val_err >= 1.
+        # Then, we get rid of any decimals.
+        if val_err >= 1:
+            val, val_err = int(val), int(val_err)
+
+        # Append to rounded number and esd to lists.
+        number_rounded.append(val)
+        esd_rounded.append(val_err)
+
+    return number_rounded, esd_rounded
+
+
+def hr_to_mr_number_and_esd(number_esd):
+    '''
+    splits human readable numbers with estimated standard deviations (e.g. 343.44(45)) into rounded machine readable
+    numbers and estimated standard deviations (e.g. 343.4 and 0.5).
+
+    Parameters
+    ----------
+    number_esd : array_like
+      The array-like object that contains numbers with their estimated standard deviations as strings
+      in the following format: ["343.44(45)", "324908.435(67)", "0.0783(1)"]
+
+    Returns
+    -------
+    list
+      The list with the rounded numbers as floats, e.g. [343.4, 324908.44, 0.0783]
+
+    list
+      The list with rounded estimated standard deviations as floats, e.g. [0.5, 0.07, 0.0001]
+
+    '''
+    number = [e.split("(")[0] for e in number_esd]
+    esd = [e.split("(")[1].split(")")[0] for e in number_esd]
+    esd_oom = []
+    for i in range(len(number)):
+        if len(number[i].split(".")) == 1:
+            esd_oom.append(1)
+        else:
+            esd_oom.append(10**-len(number[i].split(".")[1]))
+    esd_oom = np.array(esd_oom, dtype='float')
+    esd = list(np.array(esd, dtype='float') * np.array(esd_oom, dtype='float'))
+    number_floats = [float(e) for e in number]
+    number_rounded, esd_rounded = round_number_esd(number_floats, esd)
+
+    return number_rounded, esd_rounded
+
+
+def mr_to_hr_number_and_esd(number, esd):
+    '''
+    rounds and merges machine readable numbers and estimated standard deviations (e.g. 343.4 and 0.5)
+    into human readable numbers with estimated standard deviations (e.g. 343.4(5)).
+
+    Parameters
+    ----------
+    number : array-like
+        The array that contains numbers.
+    esd : array-like
+        The array that contains esds.
+
+    Returns
+    -------
+    list
+        The list of strings with human readable rounded numbers and esds.
+
+    '''
+    number_rounded, esd_rounded = round_number_esd(number, esd)
+    esd_hr = []
+    for e in esd_rounded:
+        if e < 1:
+            esd_hr.append(int(str(e).split(".")[1]))
+        else:
+            esd_hr.append(e)
+    number_esd = [f"{number_rounded[i]}({esd_hr[i]})" for i in range(len(number_rounded))]
+
+    return number_esd
+
+  
+  def correlate(y1, y2, corr_type='pearson'):
     '''
     
     Parameters
