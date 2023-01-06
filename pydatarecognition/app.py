@@ -115,13 +115,13 @@ oauth.register(
     }
 )
 
-@app.get('/login', tags=['authentication'])  # Tag it as "authentication" for our docs
+@app.get('/login', include_in_schema=False)
 async def login(request: Request):
 
     return templates.TemplateResponse('login.html', {"request": request, "user": None})
 
 
-@app.get('/google_login', tags=['authentication'])  # Tag it as "authentication" for our docs
+@app.get('/google_login', tags=['authentication'])
 async def google_login(request: Request):
     # Redirect Google OAuth back to our application
     redirect_uri = request.url_for('auth')
@@ -162,7 +162,7 @@ async def get_documentation(request: Request):
     return response
 
 
-@app.route('/cif_search', methods=['GET'])
+@app.route('/cif_search', methods=['GET'], include_in_schema=False)
 @login_required
 async def cif_search(request: Request):
     """
@@ -180,7 +180,7 @@ async def cif_search(request: Request):
                                        })
 
 
-@app.post('/cif_search', tags=['Web Interface'])
+@app.post('/cif_search', include_in_schema=False)
 async def upload_data_cif(request: Request, user_input: bytes = File(...), wavelength: str = Form(...),
                     filter_key: str = Form(None), filter_value: str = Form(None),
                     datatype: Literal["twotheta", "q"] = Form(...), user: Optional[dict] = Depends(get_user)):
