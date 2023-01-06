@@ -17,16 +17,16 @@ from google.cloud import storage as sync_storage
 MODEL_VERSION = '0.0.1'
 
 filepath = Path(os.path.abspath(__file__))
-if os.path.isfile(os.path.join(filepath.parent.absolute(), '../requirements/testing-cif-datarec-secret.json')):
+if os.path.isfile(os.path.join(filepath.parent.absolute(), '../requirements/literature-powder-search-b8cdff9cda5f.json')):
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(filepath.parent.absolute(),
-                                                                '../requirements/testing-cif-datarec-secret.json')
+                                                                '../requirements/literature-powder-search-b8cdff9cda5f.json')
 elif os.path.isfile(os.path.join(filepath.parent.absolute(), '../requirements/production-cif-datarec-secret.json')):
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(filepath.parent.absolute(),
                                                                 '../requirements/production-cif-datarec-secret.json')
 else:
     print('Google API credentials not found. See README.md if you intend to read/write to the external database')
 
-BUCKET_NAME = 'raw_cif_data'
+BUCKET_NAME = 'cif_data'
 DAYS_CACHED = 5
 GCS_METADATA = {
                 'pydantic_powder_model_version': MODEL_VERSION,

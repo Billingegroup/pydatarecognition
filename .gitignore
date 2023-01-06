@@ -142,3 +142,8 @@ dmypy.json
 pydatarecognition/secret_password.yml
 pydatarecognition/secret_password2.yml
 testing-cif-datarec-secret.json
+literature-powder-search-b8cdff9cda5f.json
+
+# test CIFs
+/iucr_cif_remediated
+literature-powder-search-firebase-adminsdk-3lqys-9ac4c7afdf.json

@@ -10,6 +10,10 @@ from pydatarecognition.utils import get_formatted_crossref_reference
 DEG = "deg"
 
 
+class CifReadError(ValueError):
+    pass
+
+
 def cif_read(cif_file_path):
     '''
     given a cif file-path, reads the cif and returns the cif data
@@ -41,9 +45,17 @@ def cif_read(cif_file_path):
     else:
         print("Getting from Cif File")
         cifdata = CifFile.ReadCif(_fixIfWindowsPath(str(cif_file_path)))
-        cif_twotheta = np.char.split(cifdata[cifdata.keys()[0]]['_pd_proc_2theta_corrected'], '(')
+        unprocessed_cif_twotheta = cifdata[cifdata.keys()[0]].get('_pd_proc_2theta_corrected')
+        if unprocessed_cif_twotheta is None:
+            print("cif file did not contain _pd_proc_2theta_corrected")
+            raise CifReadError
+        cif_twotheta = np.char.split(unprocessed_cif_twotheta, '(')
         cif_twotheta = np.array([float(e[0]) for e in cif_twotheta])
-        cif_intensity = np.char.split(cifdata[cifdata.keys()[0]]['_pd_proc_intensity_total'], '(')
+        unprocessed_cif_intensity = cifdata[cifdata.keys()[0]].get('_pd_proc_intensity_total')
+        if unprocessed_cif_intensity is None:
+            print("cif file did not contain _pd_proc_intensity_total")
+            raise CifReadError
+        cif_intensity = np.char.split(unprocessed_cif_intensity, '(')
         cif_intensity = np.array([float(e[0]) for e in cif_intensity])
         for key in cifdata.keys():
             wavelength_kwargs = {}
@@ -51,6 +63,7 @@ def cif_read(cif_file_path):
             cif_wavelength = cifdata[key].get('_diffrn_radiation_wavelength')
             if isinstance(cif_wavelength, list):
                 wavelength_kwargs['wavelength'] = float(cif_wavelength[0]) # FIXME Handle lists
+                # FIXME stopped on file sk3312Isup2.rtv.combined.cif in iucr_cif_remediated because of could not convert string to float: '0.6940(10)' in the above line
                 wavelength_kwargs['wavel_units'] = "ang"
                 break # FIXME Don't just go with first instance of wavelength.
             elif isinstance(cif_wavelength, str):
@@ -62,7 +75,7 @@ def cif_read(cif_file_path):
         if not cif_wavelength:
             wavelength_kwargs['wavelength'] = None
         po = PydanticPowderCif(cif_file_path.stem[0:6],
-                       DEG, cif_twotheta, cif_intensity, cif_file_path=cif_file_path.stem,
+                       DEG, cif_twotheta, cif_intensity, cif_file_name=cif_file_path.stem,
                        **wavelength_kwargs
                        )
     #TODO serialize all as json rather than npy save and see if how the cache speed compares
