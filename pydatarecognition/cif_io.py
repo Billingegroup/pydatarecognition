@@ -222,6 +222,9 @@ def cif_read_ext(cif_file_path, client):
     return None
 
 
+def cif_read_mpcontribs() -> str:
+    return "This feature is not yet implemented"
+
 def powdercif_to_json(po):
     json_object = {}
     if hasattr(po, 'iucrid'):
