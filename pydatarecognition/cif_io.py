@@ -234,7 +234,7 @@ def cif_read_mpcontribs(cif_type: str) -> str:
     -------
     str: 'This feature is not yet implemented'
     """
-    return 'This feature is not yet implemented'
+    pass
 
 
 def powdercif_to_json(po):
