@@ -222,17 +222,19 @@ def cif_read_ext(cif_file_path, client):
     return None
 
 
-def cif_read_mpcontribs(cif_type: str) -> str:
+def set_client(mpc_client='fs') -> str:
     """
-    given the type of cif files, returns 'Not implemented'
+    returns not implemented warning if mpc_client is 'mpc'
 
     Parameters
     ----------
-    cif_type  str object 'calculated' or 'measured'
+    mpc_client  str object 'mpc (mpcontribs)' or 'fs (filesystem)'
+                set 'fs' by default
 
     Returns
     -------
-    str: 'This feature is not yet implemented'
+    str: 'This feature is not yet implemented' if mpc_client='mpc'
+    None if mpc_client='fs'
     """
     pass
 
