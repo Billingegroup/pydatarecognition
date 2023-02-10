@@ -179,17 +179,19 @@ def test_rank_write(rw, monkeypatch):
 
 
 mpcontribs_tst = [
-    (['mpc'], 'This function is not yet implemented'),
-    (['fs'], None),
+    ('mpc', 'This function is not yet implemented'),
+    ('fs', None),
+    (False, 'mpc_client must be either mpc or fs')
 ]
 
 
-@pytest.mark.parametrize("inpt", mpcontribs_tst)
-def test_set_client(inpt):
-    if inpt[0] == 'mpc':
-        assert inpt[1] == set_client(inpt[0])
-    elif inpt[1] == 'fs':
-        assert inpt[1] == set_client(inpt[1])
+@pytest.mark.parametrize("inpt, expected", mpcontribs_tst)
+def test_set_client(inpt, expected):
+    result = set_client(inpt)
 
+    # TODO: Implement test cases for unexpected input
+    # if inpt != 'mpc' and inpt != 'fs':
+    #     assert result == expected
+    assert result == expected
 
 # End of file.

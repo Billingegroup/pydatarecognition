@@ -238,8 +238,10 @@ def set_client(mpc_client='fs') -> str | None:
     """
     if mpc_client == 'mpc':
         return 'This function is not yet implemented'
-    else:
+    elif mpc_client == 'fs':
         return None
+    else:
+        return 'mpc_client must be either mpc or fs'
 
 
 def powdercif_to_json(po):
