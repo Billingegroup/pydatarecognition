@@ -177,18 +177,19 @@ def test_rank_write(rw, monkeypatch):
         assert actual == expected
         # assert True
 
+
 mpcontribs_tst = [
     (['mpc'], 'This function is not yet implemented'),
     (['fs'], None),
 ]
+
+
 @pytest.mark.parametrize("inpt", mpcontribs_tst)
 def test_set_client(inpt):
     if inpt[0] == 'mpc':
         assert inpt[1] == set_client(inpt[0])
     elif inpt[1] == 'fs':
         assert inpt[1] == set_client(inpt[1])
-    else:
-        assert False
 
 
 # End of file.

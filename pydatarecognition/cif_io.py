@@ -222,7 +222,7 @@ def cif_read_ext(cif_file_path, client):
     return None
 
 
-def set_client(mpc_client='fs') -> str:
+def set_client(mpc_client='fs') -> str | None:
     """
     returns not implemented warning if mpc_client is 'mpc'
 
@@ -236,7 +236,10 @@ def set_client(mpc_client='fs') -> str:
     str: 'This feature is not yet implemented' if mpc_client='mpc'
     None if mpc_client='fs'
     """
-    pass
+    if mpc_client == 'mpc':
+        return 'This function is not yet implemented'
+    else:
+        return None
 
 
 def powdercif_to_json(po):
