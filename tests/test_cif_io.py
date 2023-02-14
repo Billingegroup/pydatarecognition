@@ -188,5 +188,3 @@ mpcontribs_tst = [
 def test_set_client(input, expected):
     result = set_client(input)
     assert result == expected
-
-# End of file.
