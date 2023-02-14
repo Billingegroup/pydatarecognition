@@ -224,7 +224,7 @@ def cif_read_ext(cif_file_path, client):
 
 def set_client(mpc_client='fs') -> str | None:
     """
-    returns not implemented warning if mpc_client is 'mpc'
+    returns not implemented warning if mpc_client is 'mpc' and None if mpc_client if 'fs'
 
     Parameters
     ----------

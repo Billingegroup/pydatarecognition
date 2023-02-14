@@ -185,8 +185,8 @@ mpcontribs_tst = [
     (['bad_case_test'], 'mpc_client must be either mpc or fs')
 ]
 @pytest.mark.parametrize("input, expected", mpcontribs_tst)
-def test_set_client(inpt, expected):
-    result = set_client(inpt)
+def test_set_client(input, expected):
+    result = set_client(input)
     assert result == expected
 
 # End of file.
