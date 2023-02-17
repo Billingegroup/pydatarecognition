@@ -1,10 +1,10 @@
 **Added:**
 
-* added function for client api selection
+* added argument parser
 
 **Changed:**
 
-* main function argument parser
+* main function argument parser for client api selection
 
 **Deprecated:**
 
