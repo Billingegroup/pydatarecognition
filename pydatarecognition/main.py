@@ -2,7 +2,7 @@ import sys
 import os
 from pathlib import Path
 from pydatarecognition.cif_io import cif_read, rank_write, user_input_read, \
-    cif_read_ext, json_dump, print_story
+    cif_read_ext, json_dump, print_story, CLIENT
 from pydatarecognition.utils import xy_resample, correlate, get_iucr_doi, \
     get_formatted_crossref_reference, rank_returns, validate_args, XCHOICES, \
     XUNITS, SIMILARITY_METRICS, process_args, create_q_int_arrays
@@ -12,7 +12,7 @@ import argparse
 
 def create_parser(**kwargs):
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i','--input', required=True, help="path to the input data-file. Path can be relative from the"
+    parser.add_argument('-i', '--input', required=True, help="path to the input data-file. Path can be relative from the"
                                              " current location, e.g., ./my_data_dir/my_data_filename.xy")
     parser.add_argument('--xquantity', required=True, choices=XCHOICES,
                         help=f"Independent variable quantity of the input data, from {*XCHOICES,}. By default units "
@@ -20,6 +20,9 @@ def create_parser(**kwargs):
     parser.add_argument('--xunit', required=True, choices=XUNITS,
                         help=f"Units for the independent variable quantity of the input data if different from the "
                              f"default, from {*XUNITS,}")
+    parser.add_argument('-c', '--client', choices=CLIENT,
+                        help=f'Choose program Backend API that the client will connect to, from {*CLIENT,}. By default'
+                             f"'fs', or filesystem", default='fs')
     parser.add_argument('-o', '--output', help="Path to output files. Path can be relative from the current "
                                              "location, e.g., ./my_data_dir/")
     parser.add_argument('-w', '--wavelength', help="wavelength of the radiation in angstrom units. Required if "
@@ -39,7 +42,6 @@ def create_parser(**kwargs):
                         action='store_true')
     parser.add_argument('--jsonify', action='store_true', help="dumps cifs into jsons")
     return parser
-
 
 
 def main(verbose=True):
