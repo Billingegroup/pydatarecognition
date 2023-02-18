@@ -311,8 +311,6 @@ def validate_args(args):
         raise RuntimeError(f"--xquantity d-spacing, allowed units are {*DUNITS,}. Please provide --xunit with one of these choices")
     if args.get('similarity_metric') and args.get('similarity_metric') not in SIMILARITY_METRICS:
         raise RuntimeError(f"Cannot read --similarity_metric. allowed values are {*SIMILARITY_METRICS,}.")
-    if args['client'] not in CLIENT:
-        raise RuntimeError(f"Cannot read --client, allowed values are {*CLIENT,}.")
     return True
 
 def process_args(args):
