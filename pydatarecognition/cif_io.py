@@ -244,6 +244,17 @@ def set_client(mpc_client='fs') -> str | None:
         return 'mpc_client must be either mpc or fs'
 
 
+# TODO: Figure out function signature
+def mpc_fetch():
+    """
+    returns intensity values from the MPContribs database
+
+    Parameters
+    ----------
+
+    """
+
+
 def powdercif_to_json(po):
     json_object = {}
     if hasattr(po, 'iucrid'):
