@@ -188,3 +188,7 @@ mpcontribs_tst = [
 def test_set_client(input, expected):
     result = set_client(input)
     assert result == expected
+
+
+def test_mpc_fetch():
+    assert True
