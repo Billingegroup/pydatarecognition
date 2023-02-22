@@ -3,9 +3,14 @@ import numpy as np
 import CifFile
 from diffpy.utils.parsers.loaddata import loadData
 from pydatarecognition.powdercif import PydanticPowderCif
+from mpcontribs.client import Client
+from dotenv import load_dotenv
 import json
 
+load_dotenv('../.env.dev')
+
 DEG = "deg"
+MPC_API_KEY = os.getenv("MPC_API_KEY")
 
 
 def cif_read(cif_file_path, verbose=None):
@@ -254,6 +259,25 @@ def mpc_fetch():
 
     """
 
+    # Connect to database
+    try:
+        client = Client(apikey=MPC_API_KEY, project='pydatarecognition')
+    except (OverflowError, ValueError) as err:
+        print(f'Could not connect to MPC backend: {err}')
+        return
+
+    # Fetch data tables
+    tables = client.query_contributions(fields=['tables'])['data']
+    tt = np.array([])
+
+    for temp_table in tables:
+        table_id = temp_table['tables'][0]['id']
+        table = np.array(client.get_table(table_id)['intensity'])
+
+        tt = np.concatenate([tt, table])
+
+    return tt
+
 
 def powdercif_to_json(po):
     json_object = {}
@@ -386,7 +410,9 @@ def print_story(user_input, args, ciffiles, skipped_cifs):
     print(f'Done working with cifs.\n{frame_dashchars}\nGetting references...')
 
 if __name__=="__main__":
-    import pathlib
-    toubling_path = pathlib.Path(os.path.join(os.pardir, 'docs\\examples\\cifs\\kd5015Mg3OH5Cl-4H20sup2.rtv.combined.cif'))
-    po = cif_read(toubling_path)
-    po.q
+    # import pathlib
+    # toubling_path = pathlib.Path(os.path.join(os.pardir, 'docs\\examples\\cifs\\kd5015Mg3OH5Cl-4H20sup2.rtv.combined.cif'))
+    # po = cif_read(toubling_path)
+    # po.q
+
+    print(mpc_fetch())
