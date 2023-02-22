@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy
 import pytest
 from testfixtures import TempDirectory
-from pydatarecognition.cif_io import cif_read, user_input_read, _xy_write, rank_write, set_client
+from pydatarecognition.cif_io import cif_read, user_input_read, _xy_write, rank_write, set_client, mpc_fetch
 from pydatarecognition.powdercif import PowderCif
 from tests.inputs.test_cifs import testciffiles_contents_expecteds
 from habanero import Crossref
@@ -190,5 +190,6 @@ def test_set_client(input, expected):
     assert result == expected
 
 
-def test_mpc_fetch():
-    assert True
+async def test_mpc_fetch():
+    result = await mpc_fetch()
+    assert result.shape == (42000,)
