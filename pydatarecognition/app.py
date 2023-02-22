@@ -156,14 +156,14 @@ async def logout(request: Request):
 
 
 @app.route('/docs', methods=['GET'])  # Tag it as "documentation" for our docs
-@login_required
+# @login_required
 async def get_documentation(request: Request):
     response = get_swagger_ui_html(openapi_url='/openapi.json', title='Documentation')
     return response
 
 
 @app.route('/cif_search', methods=['GET'])
-@login_required
+# @login_required
 async def cif_search(request: Request):
     """
         Route function for cif search.
