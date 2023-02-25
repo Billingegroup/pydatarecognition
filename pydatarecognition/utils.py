@@ -14,7 +14,7 @@ TTUNITS = ["deg", "rad"]
 DUNITS = ["A", "nm"]
 XUNITS = QUNITS + TTUNITS + DUNITS
 SIMILARITY_METRICS = ['pearson', 'spearman', 'kendall']
-CLIENT = ['mpc', 'fs']
+KNOWN_CLIENTS = ['mpc', 'fs']
 
 
 NumberTypes = (int, float, complex)
