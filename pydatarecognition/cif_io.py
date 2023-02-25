@@ -83,6 +83,7 @@ def cif_read(cif_file_path, verbose=None):
                           '_pd_calc_intensity_net',
                           ]
         cif_twotheta, cif_intensity, cif_twotheta_min, cif_twotheta_max, twotheta_inc = None, None, None, None, None
+        # iterate over all the main blocks, one per "structure"
         for k in cifdata_keys:
             for ttkey in twotheta_keys:
                 try:
@@ -202,10 +203,13 @@ def cif_read(cif_file_path, verbose=None):
         with open(outputdir / "no_wavelength.txt", mode="a") as o:
             o.write(no_wavelength)
     #TODO serialize all as json rather than npy save and see if how the cache speed compares
-    with open(acache, "wb") as o:
-        np.save(o, np.array([po.q, po.intensity]))
-    with open(mcache, "w") as o:
-        o.write(po.json(include={'iucrid', 'wavelength', 'id'}))
+    print(po.q)
+    print(po.intensity)
+    if len(po.q) == len(po.intensity):
+        with open(acache, "wb") as o:
+            np.save(o, np.array([po.q, po.intensity]))
+        with open(mcache, "w") as o:
+            o.write(po.json(include={'iucrid', 'wavelength', 'id'}))
 
     return po
 
