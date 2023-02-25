@@ -6,6 +6,7 @@ from pydatarecognition.powdercif import PydanticPowderCif
 from mpcontribs.client import Client
 from dotenv import load_dotenv
 import json
+from pathlib import Path
 
 load_dotenv('../.env.dev')
 
@@ -16,7 +17,7 @@ MPC_API_KEY = os.getenv("MPC_API_KEY")
 def cif_read(cif_file_path, verbose=None):
     '''
     given a cif file-path, reads the cif and returns the cif data
-    
+
     Parameters
     ----------
     cif_file_path  pathlib.Path object
@@ -268,15 +269,58 @@ def mpc_fetch():
 
     # Fetch data tables
     tables = client.query_contributions(fields=['tables'])['data']
-    tt = np.array([])
 
     for temp_table in tables:
         table_id = temp_table['tables'][0]['id']
-        table = np.array(client.get_table(table_id)['intensity'])
+        table = client.get_table(table_id)
 
-        tt = np.concatenate([tt, table])
+        two_theta = np.array(table.index)[1:]
+        intensity = np.array(table['intensity'])[1:]
 
-    return tt
+        print(two_theta)
+        print(intensity)
+
+        print(cif_read_test(two_theta, intensity))
+
+        break
+
+
+
+
+def cif_read_mpc(two_theta, intensity, verbose=None):
+    '''
+    given a cif file-path, reads the cif and returns the cif data
+
+    Parameters
+    ----------
+    cif_file_path  pathlib.Path object
+      the path to a valid cif file
+
+    Returns
+    -------
+    the cif data as a pydatarecognition.powdercif.PowderCif object
+    '''
+    if not verbose:
+        verbose = False
+    outputdir = Path('/Users/sl5035/Desktop/Columbia/Lab/BillingeLab/pydatarecognition/Testing') / "_output"
+    if not outputdir.exists():
+        outputdir.mkdir()
+    if verbose:
+        print("Getting from MPContribs Database")
+
+    cif_twotheta, cif_intensity, cif_twotheta_min, cif_twotheta_max, twotheta_inc = None, None, None, None, None
+
+    cif_twotheta = two_theta
+    cif_intensity = intensity
+    cif_twotheta_min = min(cif_twotheta)
+    cif_twotheta_max = max(cif_twotheta)
+    twotheta_inc = None
+
+    po = PydanticPowderCif(
+                           DEG, cif_twotheta, cif_intensity
+                           )
+
+    return po
 
 
 def powdercif_to_json(po):
@@ -415,4 +459,7 @@ if __name__=="__main__":
     # po = cif_read(toubling_path)
     # po.q
 
-    print(mpc_fetch())
+    print(cif_read(Path('../docs/examples/cifs/calculated/ps5069IIIsup4.rtv.simulated.cif')))
+    print()
+    mpc_fetch()
+
