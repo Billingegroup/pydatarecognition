@@ -3,15 +3,21 @@ import numpy as np
 import CifFile
 from diffpy.utils.parsers.loaddata import loadData
 from pydatarecognition.powdercif import PydanticPowderCif
+from mpcontribs.client import Client
+from dotenv import load_dotenv
 import json
+from pathlib import Path
+
+load_dotenv('../.env.dev')
 
 DEG = "deg"
+MPC_API_KEY = os.getenv("MPC_API_KEY")
 
 
 def cif_read(cif_file_path, verbose=None):
     '''
     given a cif file-path, reads the cif and returns the cif data
-    
+
     Parameters
     ----------
     cif_file_path  pathlib.Path object
@@ -222,6 +228,135 @@ def cif_read_ext(cif_file_path, client):
     return None
 
 
+def set_client(mpc_client='fs') -> str | None:
+    """
+    returns not implemented warning if mpc_client is 'mpc' and None if mpc_client is 'fs'
+
+    Parameters
+    ----------
+    mpc_client  str object 'mpc (mpcontribs)' or 'fs (filesystem)'
+                set 'fs' by default
+
+    Returns
+    -------
+    str: 'This feature is not yet implemented' if mpc_client='mpc'
+    None if mpc_client='fs'
+    """
+    if mpc_client == 'mpc':
+        return 'This function is not yet implemented'
+    elif mpc_client == 'fs':
+        return None
+    else:
+        return 'mpc_client must be either mpc or fs'
+
+
+# TODO: Figure out function signature
+def mpc_fetch():
+    """
+    returns intensity values from the MPContribs database
+
+    Parameters
+    ----------
+
+    """
+
+    # Connect to database
+    try:
+        client = Client(apikey=MPC_API_KEY, project='pydatarecognition')
+    except (OverflowError, ValueError) as err:
+        print(f'Could not connect to MPC backend: {err}')
+        return
+
+    # Fetch data contributions
+    contributions = client.query_contributions(fields=['data', 'tables', 'attachments'])['data']
+
+    for contribution in contributions:
+        print(cif_read_mpc(contribution, client))
+
+        break
+
+
+
+
+def cif_read_mpc(contribution, client, verbose=None):
+    '''
+    given a cif file-path, reads the cif and returns the cif data
+
+    Parameters
+    ----------
+    cif_file_path  pathlib.Path object
+      the path to a valid cif file
+
+    Returns
+    -------
+    the cif data as a pydatarecognition.powdercif.PowderCif object
+    '''
+    if not verbose:
+        verbose = False
+    outputdir = Path('/Users/sl5035/Desktop/Columbia/Lab/BillingeLab/pydatarecognition/Testing') / "_output"
+    if not outputdir.exists():
+        outputdir.mkdir()
+    if verbose:
+        print("Getting from MPContribs Database")
+
+    cif_name = contribution['attachments'][0]['name'][:-7]
+
+    table_id = contribution['tables'][0]['id']
+    table = client.get_table(table_id)
+
+    two_theta = np.array(table.index)[1:]
+    intensity = np.array(table['intensity'])[1:]
+
+    cif_twotheta, cif_intensity, cif_twotheta_min, cif_twotheta_max, twotheta_inc = None, None, None, None, None
+
+    cif_twotheta = two_theta
+    cif_intensity = intensity
+    cif_twotheta_min = min(cif_twotheta)
+    cif_twotheta_max = max(cif_twotheta)
+    cif_twotheta_inc = 0.02
+
+    if cif_twotheta_min and cif_twotheta_max and cif_twotheta_inc:
+        cif_twotheta = np.arange(cif_twotheta_min, cif_twotheta_max, cif_twotheta_inc)
+        if len(cif_intensity) - len(cif_twotheta) == 0:
+            pass
+        elif len(cif_intensity) - len(cif_twotheta) == 1:
+            cif_intensity = cif_intensity[0:-1]
+        elif len(cif_intensity) - len(cif_twotheta) == 2:
+            cif_intensity = cif_intensity[1:-1]
+        else:
+            cif_twotheta = None
+
+    wavelength_kwargs = {}
+    # ZT Question: why isn't this _pd_proc_wavelength rather than _diffrn_radiation_wavelength?
+    cif_wavelength = contribution['data']['wavelength']['value']
+    if isinstance(cif_wavelength, list):
+        # FIXME Problem when wavelength is stated as an interval. (eg. '1.24-5.36' in fa3079Isup2.rtv.combined)
+        try:
+            wavelength_kwargs['wavelength'] = float(cif_wavelength[0].split("(")[0])  # FIXME Handle lists
+            wavelength_kwargs['wavel_units'] = "ang"
+        except ValueError:
+            wavelength_kwargs['wavelength'] = None
+    elif isinstance(cif_wavelength, str):
+        # FIXME Problem when wavelength is stated as an interval. (eg. '1.24-5.36' in fa3079Isup2.rtv.combined)
+        try:
+            wavelength_kwargs['wavelength'] = float(cif_wavelength.split("(")[0])
+            wavelength_kwargs['wavel_units'] = "ang"
+        except ValueError:
+            wavelength_kwargs['wavelength'] = None
+    elif isinstance(cif_wavelength, float):
+        wavelength_kwargs['wavelength'] = cif_wavelength
+        wavelength_kwargs['wavel_units'] = 'ang'
+    else:
+        pass
+
+    po = PydanticPowderCif(cif_name[:6],
+                           DEG, cif_twotheta, cif_intensity,
+                           **wavelength_kwargs, cif_file_name=cif_name
+                           )
+
+    return po
+
+
 def powdercif_to_json(po):
     json_object = {}
     if hasattr(po, 'iucrid'):
@@ -353,7 +488,12 @@ def print_story(user_input, args, ciffiles, skipped_cifs):
     print(f'Done working with cifs.\n{frame_dashchars}\nGetting references...')
 
 if __name__=="__main__":
-    import pathlib
-    toubling_path = pathlib.Path(os.path.join(os.pardir, 'docs\\examples\\cifs\\kd5015Mg3OH5Cl-4H20sup2.rtv.combined.cif'))
-    po = cif_read(toubling_path)
-    po.q
+    # import pathlib
+    # toubling_path = pathlib.Path(os.path.join(os.pardir, 'docs\\examples\\cifs\\kd5015Mg3OH5Cl-4H20sup2.rtv.combined.cif'))
+    # po = cif_read(toubling_path)
+    # po.q
+
+    print(cif_read(Path('../docs/examples/cifs/calculated/ps5069IIIsup4.rtv.simulated.cif')))
+    print()
+    mpc_fetch()
+
