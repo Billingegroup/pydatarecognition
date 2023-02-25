@@ -33,9 +33,9 @@ app = FastAPI(docs_url=None, redoc_url=None)
 app.add_event_handler("startup", mongo_client.connect_db)
 app.add_event_handler("shutdown", mongo_client.close_mongo_connection)
 app.include_router(rest_api.router)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="./pydatarecognition/static"), name="static")
 app.add_middleware(SessionMiddleware, secret_key='!secret')
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="./pydatarecognition/templates")
 
 
 def login_required(f):

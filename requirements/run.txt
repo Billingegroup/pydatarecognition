@@ -15,10 +15,12 @@ habanero
 dnspython
 uvicorn
 fastapi
+psutil
 python-multipart
 google-cloud-storage
+bg-mpl-stylesheets
 Authlib
-httpx<0.18.2
+httpx
 itsdangerous
 jinja2
 aiofiles

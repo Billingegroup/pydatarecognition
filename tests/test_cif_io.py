@@ -31,6 +31,20 @@ def test_cif_read(cm):
     assert numpy.allclose(actual.intensity, expected.intensity)
     assert actual.wavelength == expected.wavelength
 
+    with TempDirectory() as d:
+        temp_dir = Path(d.path)
+        cif_bitstream = bytearray(cm[0], 'utf8')
+        d.write(f"test_cif.cif",
+                cif_bitstream)
+        test_cif_path = temp_dir / f"test_cif.cif"
+        actual = cif_read(test_cif_path, verbose = True)
+    assert actual.iucrid == expected.iucrid
+    if cm[1].get('wavelength'):
+        assert numpy.allclose(actual.q, expected.q)
+    assert numpy.allclose(actual.ttheta, expected.ttheta)
+    assert numpy.allclose(actual.intensity, expected.intensity)
+    assert actual.wavelength == expected.wavelength
+
     if actual.wavelength:
         # This second test is meant to test that the cache was created and now utilized
         with TempDirectory() as d:
@@ -114,16 +128,16 @@ tab_char = '\t'
 expected_reference = "Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971)."
 
 rw = [
-    (([{'score': 0.99900, 'doi': '10.1107/S0108768102003476'},
-       {'score': 0.999000, 'doi': '10.1107/S0108768102003476'},
-       {'score': 0.70610, 'doi': '10.1107/S0108768102003476'},
-       {'score': 0.70610, 'doi': '10.1107/S0108768102003476'},
-       {'score': 0.70540, 'doi': '10.1107/S0108768101016330'},
-       {'score': 0.70540, 'doi': '10.1107/S0108768101016330'},
-       {'score': 0.65500, 'doi': '10.1107/S0108768101016330'},
-       {'score': 0.65500, 'doi': '10.1107/S0108270102019637'},
-       {'score': 0.32100, 'doi': '10.1107/S010876810402693X'},
-       {'score': 0.32100, 'doi': '10.1107/S0108768105025991'},
+    (([{'score': 0.99900, 'doi': '10.1107/S0108768102003476', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.999000, 'doi': '10.1107/S0108768102003476', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.70610, 'doi': '10.1107/S0108768102003476', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.70610, 'doi': '10.1107/S0108768102003476', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.70540, 'doi': '10.1107/S0108768101016330', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.70540, 'doi': '10.1107/S0108768101016330', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.65500, 'doi': '10.1107/S0108768101016330', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.65500, 'doi': '10.1107/S0108270102019637', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.32100, 'doi': '10.1107/S010876810402693X', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.32100, 'doi': '10.1107/S0108768105025991', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
        ]),
         f'Rank\tScore\tDOI\t\t\t\t\t\t\tReference\n'
         f'1\t\t0.9990\t10.1107/S0108768102003476\t{expected_reference}\n'
@@ -155,10 +169,10 @@ def test_rank_write(rw, monkeypatch):
         temp_dir = Path(d.path)
         output_file_path = temp_dir
         cif_ranks = rw[0]
-        rank_write(cif_ranks, output_file_path)
+        rank_write(cif_ranks, output_file_path, "cifs")
         assert output_file_path.exists()
         expected = rw[1]
-        with open(Path(output_file_path) / 'rank_PyCharm_Notepad++.txt') as f:
+        with open(Path(output_file_path) / 'rank_PyCharm_Notepad++_cifs.txt') as f:
             actual = f.read()
         assert actual == expected
         # assert True

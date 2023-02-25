@@ -17,12 +17,12 @@ import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
-project = 'Pydatarecognition'
+project = 'pyDataRecognition'
 copyright = "2021 Trustees of Columbia University in the City of New York"
-author = "Martin Karlsen, Berrak Ozer, Simon J. L. Billinge"
+author = "Martin A. Karlsen, Berrak Özer, Simon J. L. Billinge"
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.0'
+release = '0.1.0'
 
 
 # -- General configuration ---------------------------------------------------

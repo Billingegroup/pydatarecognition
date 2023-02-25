@@ -27,7 +27,9 @@ class MongoClient():
     async def connect_db(self):
         """Create database connection."""
         self.db_client = AsyncIOMotorClient(
-            f'mongodb+srv://{username}:{password}@sidewinder.uc5ro.mongodb.net/?retryWrites=true&w=majority')
+            f'mongodb+srv://{username}:{password}@cluster0.9bj1h.mongodb.net/?retryWrites=true&w=majority'
+        #     f'mongodb+srv://{username}:{password}@sidewinder.uc5ro.mongodb.net/?retryWrites=true&w=majority'
+         )
 
     async def close_mongo_connection(self):
         """Close database connection."""

@@ -2,101 +2,135 @@
    :language: bash
 .. role:: python(code)
    :language: python
-
+.. role::  raw-html(raw)
+    :format: html
 .. raw:: html
 
     <link href="_static/unicodetiles.css" rel="stylesheet" type="text/css" />
     <script src="_static/unicodetiles.min.js"></script>
     <script src="_static/rg-dungeon.js"></script>
     <div style="text-align:center;">
-        <div id="game"><h1>welcome to the pydatarecognition docs</h1></div>
+        <div id="game"><h1>pyDataRecognition documentation</h1></div>
     </div>
     <script type="text/javascript">initRgDungeon();</script>
 
-Pydatarecognition
-========
-Pydatarecognition is a structure data content management system for published scientific papers.
-Pydatarecognition stores data and metadata relevant for describing the
+What is pyDataRecognition?
+====
+pyDataRecognition is a structure data content management system for published scientific papers.
+pyDataRecognition stores data and metadata relevant for describing the
 science in scientific publications and allows it to serialized into structured
-databases which may then be mined for better scientific understanding
+databases which may then be mined for better scientific understanding.
 
-Pydatarecognition is developed in the `Billinge group <https://billingegroup.github.io/>`_
+pyDataRecognition is developed in the `Billinge group <https://billingegroup.github.io/>`_.
 
+Preprint on arXiv
+====
+For a thorough description of the project, please see the paper by :raw-html:`&#214;`\zer and Karlsen *et al.*:
+https://doi.org/10.48550/arXiv.2204.00434.
 
-Installation
-============
+Setup and installation
+====
+The following guidelines assume that the user runs a conda distribution, i.e. Anaconda or Miniconda.
 
-Pydatarecognition packages are available from conda-forge and PyPI:
-
-**conda:**
+Create/activate conda environment
+----
+- Create/activate new conda env by running:
 
 .. code-block:: sh
 
-    $ conda install -c conda-forge Pydatarecognition
+    $ conda create -n pydatarecognition python=3
+    $ conda activate pydatarecognition
 
-**pip:**
+Install dependencies
+----
+The pyDataRecognition code is migrating quickly these days.  You can install from the GitHub repository and get the
+latest changes. Clone the `GitHub repository  <https://github.com/billingegroup/pydatarecognition>`_, change directory
+to the top level directory in that cloned repository where the :bash:`setup.py` file is.
+
+- From inside your conda environment, type
 
 .. code-block:: sh
 
-    $ pip install Pydatarecognition
+    $ conda install --file requirements/run.txt
+    $ pip install -r requirements/pip_requirements.txt
 
-The Pydatarecognition code is migrating quickly these days.  If you prefer you can 
-install from the GitHub repository mode and get the latest changes.
-In that case, clone the `GitHub repository  <https://github.com/billingegroup/pydatarecognition>`_,
-change directory to the top level directory in that cloned repository where the
-:bash:`setup.py` file is.  From inside your virtual environment, type
+which installs **pyDataRecognition**, and all its dependencies, in the conda environment. The version of
+**pyDataRecognition** you run will change each time you update from the repo leading to instability so be careful.
+
+Install package
+----
+- Install the package by navigating to the main **pydatarecognition**
+  directory and run:
 
 .. code-block:: sh
 
     $ python setup.py install
-    $ conda install -c conda-forge -c diffpy --file requirements/run.txt
 
-which installs Pydatarecognition, and all its dependencies, in this environment in develop mode.  In this mode, the
-version of Pydatarecognition you run will change each time you update from the repo 
-leading to instability so be careful.
+Running the program
+====
 
-To check that your installation type
+Directory structure
+----
+Currently, the program should be run from a directory with a subdirectory called :bash:`cifs`, containing the cif files.
+Within :bash:`docs/examples`, example cifs are located in the :bash:`cifs` subdirectory, i.e. in
+:bash:`docs/examples/cifs`.
 
-.. code-block:: sh
+Example files
+----
+Within :bash:`docs/examples/powder_data`, three examples on input data files are available:
 
-    $ pydatarecognition
+- 01_Mg-free-whitlockite_wl=1.540598.txt
+- 02_BaTiO3_wl=0.1665.txt
+- 03_(KNaLi)NbMnO3_perovskite_wl=1.5482.txt
 
-or the abbreviated
-
-.. code-block:: sh
-
-    $ pydr
-
-and it should run without error
-
-Quick Start
-============
-
-
-Quick Start
-=========
-To illustrate the use of the Pydatarecognition code, navigate from the parent dir and into the examples dir:
+How to run the program
+----
+To get information on how to run the program:
 
 .. code-block:: sh
 
-    $ cd docs/examples
+    $ python -m pydatarecognition.main --help
 
-From here, run the package:
-
-    $ pydatarecognition
-
-or abbreviated
+or
 
 .. code-block:: sh
 
-    $ pydr
+    $ python -m pydatarecognition.main -h
 
-The code will now run, and a data file will be compared to a small test database.
+The program expects a syntax somewhat similar to:
 
-Tutorials
-=========
-.. toctree::
-    :maxdepth: 1
+.. code-block:: sh
 
-    broker
+    $ python pydatarecognition.main -i INPUTFILE --xquantity XQUANTITY --xunit XUNIT -w WAVELENGTH
 
+For a full description, please run the program with the help flag as shown above.
+
+Running the program for the example files
+----
+Navigate to :bash:`docs/examples` where :bash:`cifs` and :bash:`powder_data` folders are present.
+
+Running the program the first example file
+^^^^
+
+.. code-block:: sh
+
+    $ python -m pydatarecognition.main -i 01_Mg-free-whitlockite_wl=1.540598.txt --xquantity twotheta --xunit deg -w 1.540598
+
+Running the program for the second example file
+^^^^
+
+.. code-block:: sh
+
+    $ python -m pydatarecognition.main -i 02_BaTiO3_wl=0.1665.txt --xquantity twotheta --xunit deg -w 0.1665
+
+Running the program for the third example file
+^^^^
+
+.. code-block:: sh
+
+    $ python -m pydatarecognition.main -i 03_(KNaLi)NbMnO3_perovskite_wl=1.5482.txt --xquantity twotheta --xunit deg -w 1.5482
+
+Program output
+----
+Output files will be available in the :bash:`_output` folder created in the current working directory, i.e.
+:bash:`docs/examples/_output`.

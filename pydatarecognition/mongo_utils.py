@@ -43,15 +43,15 @@ if __name__ == "__main__":
                                                                     '../requirements/testing-cif-datarec-secret.json')
     storage_client = storage.Client()
     try:
-        storage_client.create_bucket('raw_cif_data')
+        storage_client.create_bucket('raw_cif_data_simon')
     except Conflict:
         pass
-    CIF_DIR = filepath.parent.parent / 'docs' / 'examples' / 'cifs'
+    CIF_DIR = filepath.parent.parent / 'docs' / 'examples' / 'cifs' / 'measured'
     with open('secret_password.yml', 'r') as f:
         secret_dict = yaml.safe_load(f)
     # URI for group DB f'mongodb+srv://{secret_dict["username"]}:{secret_dict["password"]}@cluster0.9bj1h.mongodb.net/?retryWrites=true&w=majority'
     # URI for zt altas db f'mongodb+srv://{secret_dict["username"]}:{secret_dict["password"]}@sidewinder.uc5ro.mongodb.net/?retryWrites=true&w=majority'
-    client = cifs_to_mongo(f'mongodb+srv://{secret_dict["username"]}:{secret_dict["password"]}@sidewinder.uc5ro.mongodb.net/?retryWrites=true&w=majority', "test",
+    client = cifs_to_mongo(f'mongodb+srv://{secret_dict["username"]}:{secret_dict["password"]}@cluster0.9bj1h.mongodb.net/?retryWrites=true&w=majority', "test",
                             "cif", CIF_DIR)
     db = client["test"]
     coll = db["cif"]

@@ -1,0 +1,10 @@
+Authors:
+
+Berrak Özer,
+Martin Aaskov Karlsen,
+Zachary Allan Thatcher,
+Simon J.L. Billinge
+
+Contributors:
+
+https://github.com/Billingegroup/pydatarecognition/graphs/contributors

@@ -28,15 +28,6 @@ COLLECTION = "cif"
 MAX_MONGO_FIND = 1000000
 
 
-# Setup cif mapping reference
-CIF_DIR = filepath.parent.parent / 'docs' / 'examples' / 'cifs'
-doifile = CIF_DIR / 'iucrid_doi_mapping.txt'
-dois = np.genfromtxt(doifile, dtype='str')
-doi_dict = {}
-for i in range(len(dois)):
-    doi_dict[dois[i][0]] = dois[i][1]
-
-
 # Create an app level semaphore to prevent overloading the RAM. Assume ~100KB per cif, *5000 = 0.5GB
 semaphore = BoundedSemaphore(5000)
 
@@ -78,7 +69,7 @@ async def rank_db_cifs(db: AsyncIOMotorClient, xtype: Literal["twotheta", "q"], 
                 p_pearson = pearson[1]
             cifname_ranks.append(mongo_cif.cif_file_name)
             r_pearson_ranks.append(r_pearson)
-            doi = doi_dict[mongo_cif.iucrid]
+            doi = get_iucr_doi(mongo_cif.iucrid)
             doi_ranks.append(doi)
             if plot:
                 cif_dict[str(mongo_cif.cif_file_name)] = dict([

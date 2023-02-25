@@ -1,115 +1,174 @@
+import sys
 import os
 from pathlib import Path
-import numpy as np
-import scipy.stats
-from skbeam.core.utils import twotheta_to_q
-from pydatarecognition.cif_io import cif_read, rank_write, user_input_read
-from pydatarecognition.utils import xy_resample
-from pydatarecognition.plotters import rank_plot
-
-############################################################################################
-TESTFILE = 3 # FIXME Use cli to parse this information instead.
-if TESTFILE == 1:
-    # test cif, which IS present within the test set
-    # together with cifs from same paper
-    # x-ray data
-    # bm5088150212-01-betaTCPsup2.rtv.combined.cif
-    WAVELENGTH = 0.1540598
-    USER_INPUT_FILE = 'sandys_data_1.txt'
-    XTYPE = 'twotheta'
-elif TESTFILE == 2:
-    # test cif, which IS present within the test set
-    # no other cifs from the same paper
-    # x-ray data
-    # br2109Isup2.rtv.combined.cif
-    WAVELENGTH = 0.154175
-    USER_INPUT_FILE = 'sandys_data_2.txt'
-    XTYPE = 'twotheta'
-elif TESTFILE == 3:
-    # test cif, which is NOT present within the test set
-    # no other cifs from the same paper
-    # neutron data
-    # aj5301cubic_1_NDsup19.rtv.combined.cif
-    WAVELENGTH = 0.15482
-    USER_INPUT_FILE = 'sandys_data_3.txt'
-    XTYPE = 'twotheta'
-STEPSIZE_REGULAR_QGRID = 10**-3
-############################################################################################
+from pydatarecognition.cif_io import cif_read, rank_write, user_input_read, \
+    cif_read_ext, json_dump, print_story
+from pydatarecognition.utils import xy_resample, correlate, get_iucr_doi, \
+    get_formatted_crossref_reference, rank_returns, validate_args, XCHOICES, \
+    XUNITS, SIMILARITY_METRICS, process_args, create_q_int_arrays
+from pydatarecognition.plotters import rank_plot, all_plot
+import argparse
 
 
-def main():
+def create_parser(**kwargs):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i','--input', required=True, help="path to the input data-file. Path can be relative from the"
+                                             " current location, e.g., ./my_data_dir/my_data_filename.xy")
+    parser.add_argument('--xquantity', required=True, choices=XCHOICES,
+                        help=f"Independent variable quantity of the input data, from {*XCHOICES,}. By default units "
+                             f"are {*XUNITS,}, respectively")
+    parser.add_argument('--xunit', required=True, choices=XUNITS,
+                        help=f"Units for the independent variable quantity of the input data if different from the "
+                             f"default, from {*XUNITS,}")
+    parser.add_argument('-o', '--output', help="Path to output files. Path can be relative from the current "
+                                             "location, e.g., ./my_data_dir/")
+    parser.add_argument('-w', '--wavelength', help="wavelength of the radiation in angstrom units. Required if "
+                                                  "xquantity is twotheta")
+    parser.add_argument('--similarity-metric', help=f"The similarity metric to use, from {*SIMILARITY_METRICS,}",
+                        default='pearson')
+    parser.add_argument('--similarity-threshold', help="The similarity threshold above which we will keep the result."
+                                                       "default = 0.8",
+                        default=0.8)
+    parser.add_argument('--qgrid-interval', help="The step-size/interval of the regular q-grid of the output",
+                        default=0.001)
+    parser.add_argument('--returns-min-max', help=f"Minimumum and maximum number of results to return. Provide"
+                                                          f"two (space separated) integers.",
+                        default=[5, 20], nargs=2)
+    parser.add_argument('--plot-all', help=f"Plots all the patterns from the cifs, not just the selected ones."
+                                                          f", if specified.  Used for testing",
+                        action='store_true')
+    parser.add_argument('--jsonify', action='store_true', help="dumps cifs into jsons")
+    return parser
+
+
+
+def main(verbose=True):
+    parser = create_parser()
+    argsns = argparse.Namespace()
+    args = vars(parser.parse_args(namespace=argsns))
+    args = process_args(args)
+    validate_args(args)
     # These need to be inside main for this to run from an IDE like PyCharm
     # and still find the example files.
-    PARENT_DIR = Path.cwd()
-    INPUT_DIR = PARENT_DIR / 'powder_data'
-    CIF_DIR = PARENT_DIR / 'cifs'
-    OUTPUT_DIR = PARENT_DIR / '_output'
-    user_input = INPUT_DIR / USER_INPUT_FILE
-    ciffiles = CIF_DIR.glob("*.cif")
-    doifile = CIF_DIR / 'iucrid_doi_mapping.txt'
-    folders = [OUTPUT_DIR]
-    for folder in folders:
-        if not folder.exists():
-            folder.mkdir()
-    dois = np.genfromtxt(doifile, dtype='str')
-    doi_dict = {}
-    for i in range(len(dois)):
-        doi_dict[dois[i][0]] = dois[i][1]
-    frame_dashchars = '-'*85
-    newline_char = '\n'
-    print(f'{frame_dashchars}{newline_char}Input data file: {user_input.name}{newline_char}'
-          f'Wavelength: {WAVELENGTH} Å.{newline_char}{frame_dashchars}')
+    cifname_ranks, iucrid_ranks, corr_coeff_ranks, cif_dict, skipped_cifs, ciflog = [], [], [], {}, [], []
+    parent_dir = Path.cwd()
+    cif_dir = parent_dir
+    user_input = Path(args['input']).resolve()
+    ciffiles = cif_dir.glob("*.cif")
+    if args['output'] is None:
+        output_dir = Path.cwd() / '_output'
+    else:
+        output_dir = Path(args['output']).resolve()
+    if not output_dir.exists():
+        output_dir.mkdir()
     userdata = user_input_read(user_input)
-    if XTYPE == 'twotheta':
-        user_twotheta, user_intensity = userdata[0,:], userdata[1:,][0]
-        user_q = twotheta_to_q(np.radians(user_twotheta), WAVELENGTH)
-        user_qmin, user_qmax = np.amin(user_q), np.amax(user_q)
-    cifname_ranks, r_pearson_ranks, doi_ranks = [], [], []
-    user_dict, cif_dict = {}, {}
-    print('Working with CIFs:')
-    for ciffile in ciffiles:
-        print(ciffile.name)
-        ciffile_path = Path(ciffile)
-        pcd = cif_read(ciffile_path)
-        try:
-            data_resampled = xy_resample(user_q, user_intensity, pcd.q, pcd.intensity, STEPSIZE_REGULAR_QGRID)
-            pearson = scipy.stats.pearsonr(data_resampled[0][:,1], data_resampled[1][:,1])
-            r_pearson = pearson[0]
-            p_pearson = pearson[1]
+    user_q, user_int = create_q_int_arrays(args, userdata)
+    if args['jsonify']:
+        for ciffile in ciffiles:
+            print(ciffile.name)
+            json_data = cif_read_ext(ciffile, 'json')
+            pre = Path(ciffile).stem
+            json_dump(json_data, str(output_dir/pre) + ".json")
+    else:
+        for ciffile in ciffiles:
+            if verbose:
+                ciflog.append(ciffile.name)
+            pcd = cif_read(ciffile)
+            try:
+                user_resampled, target_resampled = xy_resample(user_q, user_int, pcd.q,
+                                             pcd.intensity, x_step=args.get('qgrid_interval'))
+                corr_coeff = correlate(user_resampled[1], target_resampled[1])
+            except (AttributeError, ValueError) as e:
+                skipped_cifs.append((ciffile.name, e))
+                continue
+
             cifname_ranks.append(ciffile.stem)
-            r_pearson_ranks.append(r_pearson)
-            doi = doi_dict[pcd.iucrid]
-            doi_ranks.append(doi)
+            iucrid_ranks.append(ciffile.stem[0:6])
+            corr_coeff_ranks.append(corr_coeff)
             cif_dict[str(ciffile.stem)] = dict([
+                        ('cifname', str(ciffile.stem)),
+                        ('iucrid', str(ciffile.stem)[0:6]),
                         ('intensity', pcd.intensity),
                         ('q', pcd.q),
-                        ('qmin', np.amin(pcd.q)),
-                        ('qmax', np.amax(pcd.q)),
-                        ('q_reg', data_resampled[1][:,0]),
-                        ('intensity_resampled', data_resampled[1][:,1]),
-                        ('r_pearson', r_pearson),
-                        ('p_pearson', p_pearson),
-                        ('doi', doi),
+                        ('qmin', pcd.q[0]),
+                        ('qmax', pcd.q[-1]),
+                        ('q_reg', user_resampled[0]),
+                        ('intensity_resampled', target_resampled[1]),
+                        ('corr_coeff', corr_coeff),
                     ])
-        except AttributeError:
-            print(f"{ciffile.name} was skipped.")
-    user_dict[str(user_input.stem)] = dict([
-        ('twotheta', userdata[:, 0]),
-        ('intensity', userdata[:, 1]),
-        ('q', user_q),
-        ('q_min', user_qmin),
-        ('q_max', user_qmax),
-    ])
-    cif_rank_pearson = sorted(list(zip(cifname_ranks, r_pearson_ranks, doi_ranks)), key = lambda x: x[1], reverse=True)
-    ranks = [{'IUCrCIF': cif_rank_pearson[i][0],
-              'score': cif_rank_pearson[i][1],
-              'doi': cif_rank_pearson[i][2]} for i in range(len(cif_rank_pearson))]
-    rank_txt = rank_write(ranks, OUTPUT_DIR)
-    print(f'{frame_dashchars}{newline_char}{rank_txt}{frame_dashchars}')
-    rank_plots = rank_plot(data_resampled[0][:,0], data_resampled[0][:, 1], cif_rank_pearson, cif_dict, OUTPUT_DIR)
-    print(f'A txt file with rankings has been saved to the txt directory,{newline_char}'
-          f'and a plot has been saved to the png directory.{newline_char}{frame_dashchars}')
+        print_story(user_input, args, ciflog, skipped_cifs)
+
+        user_dict= dict([
+            ('intensity', userdata[1]),
+            ('q', user_q),
+            ('q_min', user_q[0]),
+            ('q_max', user_q[-1]),
+        ])
+
+        cif_rank_coeff_all = sorted(list(zip(cifname_ranks, corr_coeff_ranks)), key = lambda x: x[1], reverse=True)
+        cif_rank_dict, paper_rank_dict = {}, {}
+        for i in range(len(cif_rank_coeff_all)):
+            cif_rank_dict[i] = cif_dict[cif_rank_coeff_all[i][0]]
+        cif_returns = rank_returns(cif_rank_dict, args.get('returns_min_max')[0], args.get('returns_min_max')[1], args['similarity_threshold'])
+        for i in range(cif_returns):
+            cif_rank_dict[i]['doi'] = get_iucr_doi(cif_rank_dict[i]['iucrid'])
+            cif_rank_dict[i]['ref'] = get_formatted_crossref_reference(cif_rank_dict[i]['doi'])[0]
+        cif_rank_coeff_requested = [[cif_rank_dict[i]['cifname'],
+                                     cif_rank_dict[i]['corr_coeff'],
+                                     cif_rank_dict[i]['doi'],
+                                     cif_rank_dict[i]['ref'],
+                                     ] for i in range(cif_returns)]
+        paper_rank_counter, paper_all = 0, []
+        for i in range(len(cif_rank_dict.keys())):
+            if not cif_rank_dict[i]['iucrid'] in paper_all:
+                paper_all.append(cif_rank_dict[i]['iucrid'])
+                paper_rank_dict[paper_rank_counter] = cif_rank_dict[i]
+                paper_rank_counter += 1
+        paper_returns = rank_returns(paper_rank_dict, args.get('returns_min_max')[0], args.get('returns_min_max')[1], args['similarity_threshold'])
+        for i in range(paper_returns):
+            if verbose:
+                print(f"\t{paper_rank_dict[i]['cifname']}")
+            paper_rank_dict[i]['doi'] = get_iucr_doi(paper_rank_dict[i]['iucrid'])
+            paper_rank_dict[i]['ref'] = get_formatted_crossref_reference(paper_rank_dict[i]['doi'])[0]
+        paper_rank_coeff_requested = [[paper_rank_dict[i]['cifname'],
+                                       paper_rank_dict[i]['corr_coeff'],
+                                       paper_rank_dict[i]['doi'],
+                                       paper_rank_dict[i]['ref']]
+                                      for i in range(paper_returns)]
+        cif_ranks = [{'IUCrCIF':cif_rank_dict[i]['cifname'],
+                      'score':cif_rank_dict[i]['corr_coeff'],
+                      'doi':cif_rank_dict[i]['doi'],
+                      'ref':cif_rank_dict[i]['ref'],
+                      } for i in range(cif_returns)]
+        ranks_papers = [{'IUCrCIF':paper_rank_dict[i]['cifname'],
+                         'score':paper_rank_dict[i]['corr_coeff'],
+                         'doi':paper_rank_dict[i]['doi'],
+                         'ref':paper_rank_dict[i]['ref']
+                         } for i in range(paper_returns)]
+        if verbose:
+            print(f'Done getting references.')
+        rank_txt = rank_write(cif_ranks, output_dir, "cifs")
+        frame_dashchars = '-' * 80
+        print(f'{frame_dashchars}\nCIF ranking\n{frame_dashchars}\n{rank_txt.encode("utf8")}')
+        rank_papers_txt = rank_write(ranks_papers, output_dir, "papers")
+        print(f'{frame_dashchars}\nPaper ranking\n{frame_dashchars}\n{rank_papers_txt.encode("utf8")}')
+        if verbose:
+            print(f'{frame_dashchars}\nPlotting...\n\tCIF rank plot')
+        rank_plot(user_dict, cif_dict, cif_rank_coeff_requested, output_dir, "cifs", plot_all=args['plot_all'])
+        if args['plot_all']:
+            all_plot(user_dict, cif_dict, output_dir)
+        if verbose:
+            print('\tPaper rank plot')
+        rank_plot(user_dict, cif_dict, paper_rank_coeff_requested, output_dir, "papers", plot_all=args['plot_all'])
+        if verbose:
+            print('Done plotting.')
+        print(f'{frame_dashchars}\n.txt, .pdf, and .png files have been saved to the output '
+              f'diretory.')
+        # with open((output_dir / "pydatarecognition.log"), "w") as o:
+        #     o.write(log)
+
     return None
+
 
 if __name__ == "__main__":
     # in Pycharm (and probably other IDEs) it runs main in place, so if so
@@ -118,7 +177,6 @@ if __name__ == "__main__":
     relpath = cwd / ".." / "docs" / "examples"
     if cwd.parent.name == "pydatarecognition" and cwd.parent.parent.name != "pydatarecognition":
         os.chdir(relpath)
-
     main()
 
 # End of file.

@@ -25,7 +25,7 @@ MAX_MONGO_FIND = 1000000
 
 
 # Setup cif mapping reference
-CIF_DIR = filepath.parent.parent / 'docs' / 'examples' / 'cifs'
+CIF_DIR = filepath.parent.parent / 'docs' / 'examples' / 'cifs' / 'measured'
 doifile = CIF_DIR / 'iucrid_doi_mapping.txt'
 dois = np.genfromtxt(doifile, dtype='str')
 doi_dict = {}
