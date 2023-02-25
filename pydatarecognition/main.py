@@ -5,7 +5,7 @@ from pydatarecognition.cif_io import cif_read, rank_write, user_input_read, \
     cif_read_ext, json_dump, print_story
 from pydatarecognition.utils import xy_resample, correlate, get_iucr_doi, \
     get_formatted_crossref_reference, rank_returns, validate_args, XCHOICES, \
-    XUNITS, SIMILARITY_METRICS, CLIENT, process_args, create_q_int_arrays
+    XUNITS, SIMILARITY_METRICS, KNOWN_CLIENTS, process_args, create_q_int_arrays
 from pydatarecognition.plotters import rank_plot, all_plot
 import argparse
 

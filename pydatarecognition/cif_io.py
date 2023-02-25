@@ -267,27 +267,18 @@ def mpc_fetch():
         print(f'Could not connect to MPC backend: {err}')
         return
 
-    # Fetch data tables
-    tables = client.query_contributions(fields=['tables'])['data']
+    # Fetch data contributions
+    contributions = client.query_contributions(fields=['data', 'tables', 'attachments'])['data']
 
-    for temp_table in tables:
-        table_id = temp_table['tables'][0]['id']
-        table = client.get_table(table_id)
-
-        two_theta = np.array(table.index)[1:]
-        intensity = np.array(table['intensity'])[1:]
-
-        print(two_theta)
-        print(intensity)
-
-        print(cif_read_test(two_theta, intensity))
+    for contribution in contributions:
+        print(cif_read_mpc(contribution, client))
 
         break
 
 
 
 
-def cif_read_mpc(two_theta, intensity, verbose=None):
+def cif_read_mpc(contribution, client, verbose=None):
     '''
     given a cif file-path, reads the cif and returns the cif data
 
@@ -308,16 +299,59 @@ def cif_read_mpc(two_theta, intensity, verbose=None):
     if verbose:
         print("Getting from MPContribs Database")
 
+    cif_name = contribution['attachments'][0]['name'][:-7]
+
+    table_id = contribution['tables'][0]['id']
+    table = client.get_table(table_id)
+
+    two_theta = np.array(table.index)[1:]
+    intensity = np.array(table['intensity'])[1:]
+
     cif_twotheta, cif_intensity, cif_twotheta_min, cif_twotheta_max, twotheta_inc = None, None, None, None, None
 
     cif_twotheta = two_theta
     cif_intensity = intensity
     cif_twotheta_min = min(cif_twotheta)
     cif_twotheta_max = max(cif_twotheta)
-    twotheta_inc = None
+    cif_twotheta_inc = 0.02
 
-    po = PydanticPowderCif(
-                           DEG, cif_twotheta, cif_intensity
+    if cif_twotheta_min and cif_twotheta_max and cif_twotheta_inc:
+        cif_twotheta = np.arange(cif_twotheta_min, cif_twotheta_max, cif_twotheta_inc)
+        if len(cif_intensity) - len(cif_twotheta) == 0:
+            pass
+        elif len(cif_intensity) - len(cif_twotheta) == 1:
+            cif_intensity = cif_intensity[0:-1]
+        elif len(cif_intensity) - len(cif_twotheta) == 2:
+            cif_intensity = cif_intensity[1:-1]
+        else:
+            cif_twotheta = None
+
+    wavelength_kwargs = {}
+    # ZT Question: why isn't this _pd_proc_wavelength rather than _diffrn_radiation_wavelength?
+    cif_wavelength = contribution['data']['wavelength']['value']
+    if isinstance(cif_wavelength, list):
+        # FIXME Problem when wavelength is stated as an interval. (eg. '1.24-5.36' in fa3079Isup2.rtv.combined)
+        try:
+            wavelength_kwargs['wavelength'] = float(cif_wavelength[0].split("(")[0])  # FIXME Handle lists
+            wavelength_kwargs['wavel_units'] = "ang"
+        except ValueError:
+            wavelength_kwargs['wavelength'] = None
+    elif isinstance(cif_wavelength, str):
+        # FIXME Problem when wavelength is stated as an interval. (eg. '1.24-5.36' in fa3079Isup2.rtv.combined)
+        try:
+            wavelength_kwargs['wavelength'] = float(cif_wavelength.split("(")[0])
+            wavelength_kwargs['wavel_units'] = "ang"
+        except ValueError:
+            wavelength_kwargs['wavelength'] = None
+    elif isinstance(cif_wavelength, float):
+        wavelength_kwargs['wavelength'] = cif_wavelength
+        wavelength_kwargs['wavel_units'] = 'ang'
+    else:
+        pass
+
+    po = PydanticPowderCif(cif_name[:6],
+                           DEG, cif_twotheta, cif_intensity,
+                           **wavelength_kwargs, cif_file_name=cif_name
                            )
 
     return po
