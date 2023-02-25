@@ -203,8 +203,6 @@ def cif_read(cif_file_path, verbose=None):
         with open(outputdir / "no_wavelength.txt", mode="a") as o:
             o.write(no_wavelength)
     #TODO serialize all as json rather than npy save and see if how the cache speed compares
-    print(po.q)
-    print(po.intensity)
     if len(po.q) == len(po.intensity):
         with open(acache, "wb") as o:
             np.save(o, np.array([po.q, po.intensity]))
