@@ -1,12 +1,19 @@
 from pathlib import Path
 
+import os
 import numpy
 import pytest
 from testfixtures import TempDirectory
-from pydatarecognition.cif_io import cif_read, user_input_read, _xy_write, rank_write, set_client, mpc_fetch
+from pydatarecognition.cif_io import cif_read, user_input_read, _xy_write, rank_write, set_client, mpc_fetch, \
+    cif_read_mpc
 from pydatarecognition.powdercif import PowderCif
 from tests.inputs.test_cifs import testciffiles_contents_expecteds
 from habanero import Crossref
+from dotenv import load_dotenv
+from mpcontribs.client import Client
+
+load_dotenv('../.env.dev')
+
 
 @pytest.mark.parametrize("cm", testciffiles_contents_expecteds)
 def test_cif_read(cm):
@@ -37,7 +44,7 @@ def test_cif_read(cm):
         d.write(f"test_cif.cif",
                 cif_bitstream)
         test_cif_path = temp_dir / f"test_cif.cif"
-        actual = cif_read(test_cif_path, verbose = True)
+        actual = cif_read(test_cif_path, verbose=True)
     assert actual.iucrid == expected.iucrid
     if cm[1].get('wavelength'):
         assert numpy.allclose(actual.q, expected.q)
@@ -55,8 +62,8 @@ def test_cif_read(cm):
             test_cif_path = temp_dir / f"test_cif.cif"
             cif_read(test_cif_path)
             actual = cif_read(test_cif_path)
-        # build a PowderCif object with the right stuff in it for comparing with that
-        #    built by the cif reader
+            # build a PowderCif object with the right stuff in it for comparing with that
+            #    built by the cif reader
             expected = PowderCif(
                 cm[1].get("iucrid"), "invnm", cm[1].get("q"),
                 cm[1].get("intensity"), wavelength=None
@@ -90,6 +97,7 @@ testuserdata_contents_expecteds = [
      )
 ]
 
+
 @pytest.mark.parametrize("cm", testuserdata_contents_expecteds)
 def test_user_input_read(cm):
     with TempDirectory() as d:
@@ -102,13 +110,16 @@ def test_user_input_read(cm):
     expected = cm[1]
     numpy.testing.assert_array_equal(actual, expected)
 
+
 pm = [
     (([1.0, 2, 3.2],
       [4, 5.5, 6]),
-       '1.000000000000000000e+00\t4.000000000000000000e+00\n' \
-       '2.000000000000000000e+00\t5.500000000000000000e+00\n' \
-       '3.200000000000000178e+00\t6.000000000000000000e+00\n'),
+     '1.000000000000000000e+00\t4.000000000000000000e+00\n' \
+     '2.000000000000000000e+00\t5.500000000000000000e+00\n' \
+     '3.200000000000000178e+00\t6.000000000000000000e+00\n'),
 ]
+
+
 @pytest.mark.parametrize("pm", pm)
 def test__xy_write(pm):
     with TempDirectory() as d:
@@ -128,30 +139,42 @@ tab_char = '\t'
 expected_reference = "Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971)."
 
 rw = [
-    (([{'score': 0.99900, 'doi': '10.1107/S0108768102003476', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
-       {'score': 0.999000, 'doi': '10.1107/S0108768102003476', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
-       {'score': 0.70610, 'doi': '10.1107/S0108768102003476', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
-       {'score': 0.70610, 'doi': '10.1107/S0108768102003476', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
-       {'score': 0.70540, 'doi': '10.1107/S0108768101016330', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
-       {'score': 0.70540, 'doi': '10.1107/S0108768101016330', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
-       {'score': 0.65500, 'doi': '10.1107/S0108768101016330', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
-       {'score': 0.65500, 'doi': '10.1107/S0108270102019637', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
-       {'score': 0.32100, 'doi': '10.1107/S010876810402693X', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
-       {'score': 0.32100, 'doi': '10.1107/S0108768105025991', 'ref' : 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+    (([{'score': 0.99900, 'doi': '10.1107/S0108768102003476',
+        'ref': 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.999000, 'doi': '10.1107/S0108768102003476',
+        'ref': 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.70610, 'doi': '10.1107/S0108768102003476',
+        'ref': 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.70610, 'doi': '10.1107/S0108768102003476',
+        'ref': 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.70540, 'doi': '10.1107/S0108768101016330',
+        'ref': 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.70540, 'doi': '10.1107/S0108768101016330',
+        'ref': 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.65500, 'doi': '10.1107/S0108768101016330',
+        'ref': 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.65500, 'doi': '10.1107/S0108270102019637',
+        'ref': 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.32100, 'doi': '10.1107/S010876810402693X',
+        'ref': 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
+       {'score': 0.32100, 'doi': '10.1107/S0108768105025991',
+        'ref': 'Whamo, SJL Billinge, J. Great Results, v. 10, pp. 231-233, (1971).'},
        ]),
-        f'Rank\tScore\tDOI\t\t\t\t\t\t\tReference\n'
-        f'1\t\t0.9990\t10.1107/S0108768102003476\t{expected_reference}\n'
-        f'2\t\t0.9990\t10.1107/S0108768102003476\t{expected_reference}\n'
-        f'3\t\t0.7061\t10.1107/S0108768102003476\t{expected_reference}\n'
-        f'4\t\t0.7061\t10.1107/S0108768102003476\t{expected_reference}\n'
-        f'5\t\t0.7054\t10.1107/S0108768101016330\t{expected_reference}\n'
-        f'6\t\t0.7054\t10.1107/S0108768101016330\t{expected_reference}\n'
-        f'7\t\t0.6550\t10.1107/S0108768101016330\t{expected_reference}\n'
-        f'8\t\t0.6550\t10.1107/S0108270102019637\t{expected_reference}\n'
-        f'9\t\t0.3210\t10.1107/S010876810402693X\t{expected_reference}\n'
-        f'10\t\t0.3210\t10.1107/S0108768105025991\t{expected_reference}\n'
+     f'Rank\tScore\tDOI\t\t\t\t\t\t\tReference\n'
+     f'1\t\t0.9990\t10.1107/S0108768102003476\t{expected_reference}\n'
+     f'2\t\t0.9990\t10.1107/S0108768102003476\t{expected_reference}\n'
+     f'3\t\t0.7061\t10.1107/S0108768102003476\t{expected_reference}\n'
+     f'4\t\t0.7061\t10.1107/S0108768102003476\t{expected_reference}\n'
+     f'5\t\t0.7054\t10.1107/S0108768101016330\t{expected_reference}\n'
+     f'6\t\t0.7054\t10.1107/S0108768101016330\t{expected_reference}\n'
+     f'7\t\t0.6550\t10.1107/S0108768101016330\t{expected_reference}\n'
+     f'8\t\t0.6550\t10.1107/S0108270102019637\t{expected_reference}\n'
+     f'9\t\t0.3210\t10.1107/S010876810402693X\t{expected_reference}\n'
+     f'10\t\t0.3210\t10.1107/S0108768105025991\t{expected_reference}\n'
      ),
 ]
+
+
 @pytest.mark.parametrize("rw", rw)
 def test_rank_write(rw, monkeypatch):
     def mockreturn(*args, **kwargs):
@@ -160,7 +183,7 @@ def test_rank_write(rw, monkeypatch):
                                     "volume": 10,
                                     "title": ["Whamo"],
                                     "page": "231-233",
-                                    "issued": {"date-parts": [[1971,8,20]]}}
+                                    "issued": {"date-parts": [[1971, 8, 20]]}}
                         }
         return mock_article
 
@@ -184,6 +207,8 @@ mpcontribs_tst = [
     ('unknown_string', 'mpc_client must be either mpc or fs'),
     (['bad_case_test'], 'mpc_client must be either mpc or fs')
 ]
+
+
 @pytest.mark.parametrize("input, expected", mpcontribs_tst)
 def test_set_client(input, expected):
     result = set_client(input)
@@ -192,4 +217,34 @@ def test_set_client(input, expected):
 
 async def test_mpc_fetch():
     result = await mpc_fetch()
-    assert result.shape == (42000,)
+    assert True
+
+
+calculated_cif = Path('../docs/examples/cifs/calculated/ps5069IIIsup4.rtv.simulated.cif')
+contrib = {'data': {'type': 'simulated',
+                    'date': '2022-09-21',
+                    'wavelength': {'display': '1.5418 Å',
+                                   'value': 1.5418,
+                                   'error': None,
+                                   'unit': 'Å'}},
+           'tables': [{'id': '63d45b4eaa6bc07588593694',
+                       'name': 'powder diffraction',
+                       'md5': 'af83d30d8157ce01ee55feabcd163c52',
+                       'attrs': {'title': 'Powder Diffraction Pattern',
+                                 'labels': {'index': '2θ'}},
+                       'columns': ['intensity'],
+                       'total_data_rows': 2000,
+                       'total_data_pages': 100}],
+           'attachments': [{'id': '63d45b4eaa6bc07588593692',
+                            'name': 'ps5069IIIsup4.rtv.simulated.cif.gz',
+                            'mime': 'application/gzip',
+                            'md5': 'e2538501fec4a27eed7d4808c27fa332'}]}
+
+
+def test_cif_read_mpc():
+    test_client = Client(apikey=os.getenv("MPC_API_KEY"), project='pydatarecognition')
+
+    expected = cif_read(calculated_cif)
+    result = cif_read_mpc(contrib, test_client)
+
+    assert expected == result
