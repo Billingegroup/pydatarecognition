@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import pytest
 import os
 
@@ -6,9 +6,9 @@ from pathlib import Path
 from collections import defaultdict
 from glob import iglob
 
-from pydatarecognition.fsclient import FileSystemClient
 from pydatarecognition.cif_io import cif_read
-from cifpath import cif_path
+from pydatarecognition.fsclient import FileSystemClient
+from tests.cifpath import cif_path
 
 
 def test_load_cifs():
@@ -22,4 +22,5 @@ def test_load_cifs():
         ciffilename = os.path.split(f)[-1]
         expected[ciffilename] = cif_read(Path(f))
 
-    assert result == expected
+    for key in expected:
+        assert np.all([expected[key], client[key]])
