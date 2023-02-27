@@ -9,6 +9,7 @@ from pydatarecognition.utils import xy_resample, correlate, get_iucr_doi, \
 from pydatarecognition.plotters import rank_plot, all_plot
 import argparse
 
+KNOWN_CLIENTS = ("fs", "mpcontribs")
 
 def create_parser(**kwargs):
     parser = argparse.ArgumentParser()
@@ -29,6 +30,8 @@ def create_parser(**kwargs):
                                                   "xquantity is twotheta")
     parser.add_argument('--similarity-metric', help=f"The similarity metric to use, from {*SIMILARITY_METRICS,}",
                         default='pearson')
+    parser.add_argument('--client', help=f"The database client to use from {*KNOWN_CLIENTS,}",
+                        choices={*KNOWN_CLIENTS}, default='fs')
     parser.add_argument('--similarity-threshold', help="The similarity threshold above which we will keep the result."
                                                        "default = 0.8",
                         default=0.8)

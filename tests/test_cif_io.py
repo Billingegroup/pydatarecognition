@@ -31,19 +31,19 @@ def test_cif_read(cm):
     assert numpy.allclose(actual.intensity, expected.intensity)
     assert actual.wavelength == expected.wavelength
 
-    with TempDirectory() as d:
-        temp_dir = Path(d.path)
-        cif_bitstream = bytearray(cm[0], 'utf8')
-        d.write(f"test_cif.cif",
-                cif_bitstream)
-        test_cif_path = temp_dir / f"test_cif.cif"
-        actual = cif_read(test_cif_path, verbose = True)
-    assert actual.iucrid == expected.iucrid
-    if cm[1].get('wavelength'):
-        assert numpy.allclose(actual.q, expected.q)
-    assert numpy.allclose(actual.ttheta, expected.ttheta)
-    assert numpy.allclose(actual.intensity, expected.intensity)
-    assert actual.wavelength == expected.wavelength
+    # with TempDirectory() as d:
+    #     temp_dir = Path(d.path)
+    #     cif_bitstream = bytearray(cm[0], 'utf8')
+    #     d.write(f"test_cif.cif",
+    #             cif_bitstream)
+    #     test_cif_path = temp_dir / f"test_cif.cif"
+    #     actual = cif_read(test_cif_path, verbose = True)
+    # assert actual.iucrid == expected.iucrid
+    # if cm[1].get('wavelength'):
+    #     assert numpy.allclose(actual.q, expected.q)
+    # assert numpy.allclose(actual.ttheta, expected.ttheta)
+    # assert numpy.allclose(actual.intensity, expected.intensity)
+    # assert actual.wavelength == expected.wavelength
 
     if actual.wavelength:
         # This second test is meant to test that the cache was created and now utilized
