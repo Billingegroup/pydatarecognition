@@ -10,7 +10,7 @@ import ruamel.yaml
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
-from cif_io import cif_read
+from pydatarecognition.cif_io import cif_read
 
 import signal
 import logging
@@ -140,9 +140,19 @@ class FileSystemClient:
             self.cifs = defaultdict(lambda: None)
             self.closed = False
 
-    def load_cifs(self, cifs, cifpath) -> None:
+    def load_cifs(self, cifpath):
         """Loads cif files from the filesystem."""
-        pass
+        cifs = self.cifs
+
+        for f in [file for file in iglob(os.path.join(cifpath, "*.cif"))]:
+            ciffilename = os.path.split(f)[-1]
+            base, ext = os.path.splitext(ciffilename)
+            self._collfiletypes[base] = "cif"
+            print("loading " + f + "...", file=sys.stdout)  # ?: sys.stderr or sys.stdout
+
+            cifs[ciffilename] = cif_read(Path(f))
+
+        return cifs
 
     # TODO: Implement this function
     def dump_cifs(self, cifs, cifpath):
