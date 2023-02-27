@@ -213,6 +213,10 @@ def cif_read(cif_file_path, verbose=None):
     return po
 
 
+def cif_read_mpc():
+    pass
+
+
 def cif_read_ext(cif_file_path, client):
     if not client:
         client = "fs"
