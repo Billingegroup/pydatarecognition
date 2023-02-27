@@ -6,7 +6,6 @@ from pydatarecognition.powdercif import PydanticPowderCif
 import json
 
 DEG = "deg"
-CLIENT = ['mpc', 'fs']
 
 
 def cif_read(cif_file_path, verbose=None):

@@ -2,7 +2,7 @@ import sys
 import os
 from pathlib import Path
 from pydatarecognition.cif_io import cif_read, rank_write, user_input_read, \
-    cif_read_ext, json_dump, print_story, CLIENT
+    cif_read_ext, json_dump, print_story
 from pydatarecognition.utils import xy_resample, correlate, get_iucr_doi, \
     get_formatted_crossref_reference, rank_returns, validate_args, XCHOICES, \
     XUNITS, SIMILARITY_METRICS, process_args, create_q_int_arrays
@@ -21,9 +21,6 @@ def create_parser(**kwargs):
     parser.add_argument('--xunit', required=True, choices=XUNITS,
                         help=f"Units for the independent variable quantity of the input data if different from the "
                              f"default, from {*XUNITS,}")
-    parser.add_argument('-c', '--client', choices=CLIENT,
-                        help=f'Choose program Backend API that the client will connect to, from {*CLIENT,}. By default'
-                             f"'fs', or filesystem", default='fs')
     parser.add_argument('-o', '--output', help="Path to output files. Path can be relative from the current "
                                              "location, e.g., ./my_data_dir/")
     parser.add_argument('-w', '--wavelength', help="wavelength of the radiation in angstrom units. Required if "
