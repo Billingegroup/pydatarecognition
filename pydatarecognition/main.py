@@ -13,7 +13,7 @@ KNOWN_CLIENTS = ("fs", "mpcontribs")
 
 def create_parser(**kwargs):
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i','--input', required=True, help="path to the input data-file. Path can be relative from the"
+    parser.add_argument('-i', '--input', required=True, help="path to the input data-file. Path can be relative from the"
                                              " current location, e.g., ./my_data_dir/my_data_filename.xy")
     parser.add_argument('--xquantity', required=True, choices=XCHOICES,
                         help=f"Independent variable quantity of the input data, from {*XCHOICES,}. By default units "
@@ -42,7 +42,6 @@ def create_parser(**kwargs):
                         action='store_true')
     parser.add_argument('--jsonify', action='store_true', help="dumps cifs into jsons")
     return parser
-
 
 
 def main(verbose=True):

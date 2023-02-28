@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy
 import pytest
 from testfixtures import TempDirectory
-from pydatarecognition.cif_io import cif_read, user_input_read, _xy_write, rank_write
+from pydatarecognition.cif_io import cif_read, user_input_read, _xy_write, rank_write, set_client
 from pydatarecognition.powdercif import PowderCif
 from tests.inputs.test_cifs import testciffiles_contents_expecteds
 from habanero import Crossref
@@ -177,4 +177,14 @@ def test_rank_write(rw, monkeypatch):
         assert actual == expected
         # assert True
 
-# End of file.
+
+mpcontribs_tst = [
+    ('mpc', 'This function is not yet implemented'),
+    ('fs', None),
+    ('unknown_string', 'mpc_client must be either mpc or fs'),
+    (['bad_case_test'], 'mpc_client must be either mpc or fs')
+]
+@pytest.mark.parametrize("input, expected", mpcontribs_tst)
+def test_set_client(input, expected):
+    result = set_client(input)
+    assert result == expected
