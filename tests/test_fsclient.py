@@ -3,24 +3,33 @@ import pytest
 import os
 
 from pathlib import Path
-from collections import defaultdict
-from glob import iglob
+from testfixtures import TempDirectory
 
 from pydatarecognition.cif_io import cif_read
 from pydatarecognition.fsclient import FileSystemClient
-from tests.cifpath import cif_path
+from tests.inputs.test_cifs import testciffiles_contents_expecteds
 
 
-def test_load_cifs():
-    cifpath = cif_path
+@pytest.mark.parametrize("cm", testciffiles_contents_expecteds)
+def test_load_cifs(cm):
     client = FileSystemClient(None)
 
-    result = client.load_cifs(cifpath)
-    expected = defaultdict(lambda: None)
+    with TempDirectory() as d:
+        temp_dir = Path(d.path)
+        cif_bitstream = bytearray(cm[0], 'utf8')
+        d.write(f"test_cif.cif",
+                cif_bitstream)
+        test_cif_path = temp_dir / f"test_cif.cif"
+        actual = client.load_cifs(temp_dir)['test_cif.cif']
+        expected = cif_read(test_cif_path)
 
-    for f in [file for file in iglob(os.path.join(cifpath, "*.cif"))]:
-        ciffilename = os.path.split(f)[-1]
-        expected[ciffilename] = cif_read(Path(f))
+        assert actual.iucrid == expected.iucrid
+        if cm[1].get('wavelength'):
+            if actual.q.shape[0] and expected.q.shape[0]:
+                assert np.allclose(actual.q, expected.q)
+            if actual.ttheta.shape[0] and len(expected.ttheta):
+                assert np.allclose(actual.ttheta, expected.ttheta)
 
-    for key in expected:
-        assert np.all([expected[key], client[key]])
+            assert np.allclose(actual.intensity, expected.intensity)
+            assert actual.wavelength == expected.wavelength
+

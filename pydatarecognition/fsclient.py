@@ -157,7 +157,7 @@ class FileSystemClient:
     # TODO: Implement this function
     def dump_cifs(self, cifs, cifpath):
         """Dumps cif files back to the filesystem."""
-        pass
+        os.mkdir(cifpath)
 
     def dump_json(self, docs, collname, dbpath):
         """Dumps json docs and returns filename"""
