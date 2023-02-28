@@ -171,7 +171,8 @@ class PydanticPowderCif(BaseBSONModel):
         return val
 
 
-#each is ~56KB, 1000 of which are 0.56GB of RAM
+# Each is ~56KB, 1000 of which are 0.56GB of RAM
+# As it stands, this doesn't help, since all of the database will be loaded every time and you might as well not use S3
 @lru_cache(maxsize=1000, typed=True)
 def retrieve_glob_as_np(uid: str) -> np.ndarray:
     storage_client = storage.Client()

@@ -34,6 +34,7 @@ if __name__ == "__main__":
     import yaml
 
     from google.cloud import storage
+    from google.cloud.exceptions import Conflict
 
     filepath = Path(os.path.abspath(__file__))
 
@@ -41,7 +42,10 @@ if __name__ == "__main__":
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(filepath.parent.absolute(),
                                                                     '../requirements/testing-cif-datarec-secret.json')
     storage_client = storage.Client()
-    storage_client.create_bucket('raw_cif_data')
+    try:
+        storage_client.create_bucket('raw_cif_data')
+    except Conflict:
+        pass
     CIF_DIR = filepath.parent.parent / 'docs' / 'examples' / 'cifs'
     with open('secret_password.yml', 'r') as f:
         secret_dict = yaml.safe_load(f)

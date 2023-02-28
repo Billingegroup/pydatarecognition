@@ -1,9 +1,12 @@
+import concurrent.futures
 import os
 from pathlib import Path
 import yaml
 import tempfile
 import shutil
 import uuid
+import asyncio
+from threading import BoundedSemaphore
 
 from fastapi import FastAPI, Body, HTTPException, status, File
 from fastapi.responses import JSONResponse
@@ -20,6 +23,7 @@ import numpy as np
 STEPSIZE_REGULAR_QGRID = 10**-3
 
 COLLECTION = "cif"
+MAX_MONGO_FIND = 1000000
 
 app = FastAPI()
 
@@ -40,7 +44,8 @@ doi_dict = {}
 for i in range(len(dois)):
     doi_dict[dois[i][0]] = dois[i][1]
 
-
+# Create an app level semaphore to prevent overloading the RAM. Assume ~56KB per file, *5000 = 2.8GB
+semaphore = BoundedSemaphore(50000)
 
 
 @app.post("/", response_description="Add new CIF", response_model=PydanticPowderCif)
@@ -98,7 +103,7 @@ async def delete_cif(id: str):
     raise HTTPException(status_code=404, detail=f"CIF {id} not found")
 
 @app.put(
-    "/query/", response_description="Rank matches to User Input Data"
+    "/rank/", response_description="Rank matches to User Input Data"
 )
 async def rank_cif(xtype: Literal["twotheta", "q"], wavelength: float, user_input: bytes = File(...), paper_filter_iucrid: Optional[str] = None):
     cifname_ranks = []
@@ -113,22 +118,26 @@ async def rank_cif(xtype: Literal["twotheta", "q"], wavelength: float, user_inpu
     if xtype == 'twotheta':
         user_q = twotheta_to_q(np.radians(user_x_data), wavelength)
     if paper_filter_iucrid:
-        cif_list = db[COLLECTION].find({"iucrid": paper_filter_iucrid})
+        cif_cursor = db[COLLECTION].find({"iucrid": paper_filter_iucrid})
     else:
-        cif_list = db[COLLECTION].find({})
-    async for cif in cif_list:
-        mongo_cif = PydanticPowderCif(**cif)
-        try:
-            data_resampled = xy_resample(user_q, user_q, mongo_cif.q, mongo_cif.intensity, STEPSIZE_REGULAR_QGRID)
-            pearson = scipy.stats.pearsonr(data_resampled[0][:, 1], data_resampled[1][:, 1])
-            r_pearson = pearson[0]
-            p_pearson = pearson[1]
-            cifname_ranks.append(mongo_cif.cif_file_name)
-            r_pearson_ranks.append(r_pearson)
-            doi = doi_dict[mongo_cif.iucrid]
-            doi_ranks.append(doi)
-        except AttributeError:
-            print(f"{mongo_cif.cif_file_name} was skipped.")
+        cif_cursor = db[COLLECTION].find({})
+    unpopulated_cif_list = await cif_cursor.to_list(length=MAX_MONGO_FIND)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = (executor.submit(limited_cif_load, cif) for cif in unpopulated_cif_list)
+        for future in concurrent.futures.as_completed(futures):
+            mongo_cif = future.result()
+            try:
+                data_resampled = xy_resample(user_q, user_q, mongo_cif.q, mongo_cif.intensity, STEPSIZE_REGULAR_QGRID)
+                pearson = scipy.stats.pearsonr(data_resampled[0][:, 1], data_resampled[1][:, 1])
+                r_pearson = pearson[0]
+                p_pearson = pearson[1]
+                cifname_ranks.append(mongo_cif.cif_file_name)
+                r_pearson_ranks.append(r_pearson)
+                doi = doi_dict[mongo_cif.iucrid]
+                doi_ranks.append(doi)
+            except AttributeError:
+                print(f"{mongo_cif.cif_file_name} was skipped.")
+            semaphore.release()
 
     cif_rank_pearson = sorted(list(zip(cifname_ranks, r_pearson_ranks, doi_ranks)), key=lambda x: x[1], reverse=True)
     ranks = [{'IUCrCIF': cif_rank_pearson[i][0],
@@ -136,6 +145,11 @@ async def rank_cif(xtype: Literal["twotheta", "q"], wavelength: float, user_inpu
               'doi': cif_rank_pearson[i][2]} for i in range(len(cif_rank_pearson))]
     shutil.rmtree(tempdir)
     return ranks
+
+
+def limited_cif_load(cif: dict):
+    semaphore.acquire()
+    return PydanticPowderCif(**cif)
 
 
 if __name__ == "__main__":
