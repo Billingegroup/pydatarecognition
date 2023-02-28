@@ -42,15 +42,90 @@ from pydatarecognition.fsclient import FileSystemClient
 DEFAULT_RC = {}
 rc = DEFAULT_RC
 
+
 # FileSystemClient methods tested here
 def test_is_alive():
-    expected = True  #filesystem is always alive!
+    expected = True  # filesystem is always alive!
     fsc = FileSystemClient(rc)
     actual = fsc.is_alive()
     assert actual == expected
+
 
 @pytest.mark.skip("Not written")
 def test_open():
     pass
 
-# and so on.....
+
+@pytest.mark.skip("Not written")
+def test_load_json():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_load_yaml():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_load_database():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_dump_json():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_dump_yaml():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_dump_database():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_close():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_keys():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_collection_names():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_all_documents():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_insert_one():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_insert_many():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_delete_one():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_find_one():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_update_one():
+    pass
