@@ -4,17 +4,18 @@ import os
 import sys
 from collections import defaultdict
 from copy import deepcopy
-import datetime
 from glob import iglob
 
 import ruamel.yaml
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
-from regolith.tools import dbpathname
+from pydatarecognition.cif_io import cif_read
 
 import signal
 import logging
+
+from pathlib import Path
 
 
 class DelayedKeyboardInterrupt:
@@ -31,7 +32,6 @@ class DelayedKeyboardInterrupt:
         signal.signal(signal.SIGINT, self.old_handler)
         if self.signal_received:
             self.old_handler(*self.signal_received)
-
 
 
 YAML_BASE_MAP = {CommentedMap: dict,
@@ -66,11 +66,6 @@ def load_json(filename):
         doc = json.loads(line)
         docs[doc["_id"]] = doc
     return docs
-
-
-def date_encoder(obj):
-    if isinstance(obj, (datetime.date, datetime.datetime)):
-        return obj.isoformat()
 
 
 def dump_json(filename, docs, date_handler=None):
@@ -131,8 +126,7 @@ class FileSystemClient:
     def __init__(self, rc):
         self.rc = rc
         self.closed = True
-        self.dbs = None
-        self.chained_db = None
+        self.cifs = None
         self.open()
         self._collfiletypes = {}
         self._collexts = {}
@@ -143,50 +137,27 @@ class FileSystemClient:
 
     def open(self):
         if self.closed:
-            self.dbs = defaultdict(lambda: defaultdict(dict))
-            self.chained_db = {}
+            self.cifs = defaultdict(lambda: None)
             self.closed = False
 
-    def load_json(self, db, dbpath):
-        """Loads the JSON part of a database."""
-        dbs = self.dbs
-        for f in [
-            file
-            for file in iglob(os.path.join(dbpath, "*.json"))
-            if file not in db["blacklist"]
-               and len(db["whitelist"]) == 0
-               or os.path.basename(file).split(".")[0] in db["whitelist"]
-        ]:
-            collfilename = os.path.split(f)[-1]
-            base, ext = os.path.splitext(collfilename)
-            self._collfiletypes[base] = "json"
-            print("loading " + f + "...", file=sys.stderr)
-            dbs[db["name"]][base] = load_json(f)
+    def load_cifs(self, cifpath):
+        """Loads cif files from the filesystem."""
+        cifs = self.cifs
 
-    def load_yaml(self, db, dbpath):
-        """Loads the YAML part of a database."""
-        dbs = self.dbs
-        for f in [
-            file
-            for file in iglob(os.path.join(dbpath, "*.y*ml"))
-            if file not in db["blacklist"]
-            and len(db["whitelist"]) == 0
-            or os.path.basename(file).split(".")[0] in db["whitelist"]
-        ]:
-            collfilename = os.path.split(f)[-1]
-            base, ext = os.path.splitext(collfilename)
-            self._collexts[base] = ext
-            self._collfiletypes[base] = "yaml"
-            #print("loading " + f + "...", file=sys.stderr)
-            coll, inst = load_yaml(f, return_inst=True)
-            dbs[db["name"]][base] = coll
-            self._yamlinsts[dbpath, base] = inst
+        for f in [file for file in iglob(os.path.join(cifpath, "*.cif"))]:
+            ciffilename = os.path.split(f)[-1]
+            base, ext = os.path.splitext(ciffilename)
+            self._collfiletypes[base] = "cif"
+            print("loading " + f + "...", file=sys.stdout)  # ?: sys.stderr or sys.stdout
 
-    def load_database(self, db):
-        """Loads a database."""
-        dbpath = dbpathname(db, self.rc)
-        self.load_json(db, dbpath)
-        self.load_yaml(db, dbpath)
+            cifs[ciffilename] = cif_read(Path(f))
+
+        return cifs
+
+    # TODO: Implement this function
+    def dump_cifs(self, cifs, cifpath):
+        """Dumps cif files back to the filesystem."""
+        os.mkdir(cifpath)
 
     def dump_json(self, docs, collname, dbpath):
         """Dumps json docs and returns filename"""
@@ -205,36 +176,36 @@ class FileSystemClient:
         filename = os.path.split(f)[-1]
         return filename
 
-    def dump_database(self, db):
-        """Dumps a database back to the filesystem."""
-        dbpath = dbpathname(db, self.rc)
-        os.makedirs(dbpath, exist_ok=True)
-        to_add = []
-        for collname, collection in self.dbs[db["name"]].items():
-            #print("dumping " + collname + "...", file=sys.stderr)
-            filetype = self._collfiletypes.get(collname, "yaml")
-            if filetype == "json":
-                filename = self.dump_json(collection, collname, dbpath)
-            elif filetype == "yaml":
-                filename = self.dump_yaml(collection, collname, dbpath)
-            else:
-                raise ValueError("did not recognize file type for regolith")
-            to_add.append(os.path.join(db["path"], filename))
-        return to_add
+    # def dump_database(self, db):
+    #     """Dumps a database back to the filesystem."""
+    #     dbpath = dbpathname(db, self.rc)
+    #     os.makedirs(dbpath, exist_ok=True)
+    #     to_add = []
+    #     for collname, collection in self.dbs[db["name"]].items():
+    #         #print("dumping " + collname + "...", file=sys.stderr)
+    #         filetype = self._collfiletypes.get(collname, "yaml")
+    #         if filetype == "json":
+    #             filename = self.dump_json(collection, collname, dbpath)
+    #         elif filetype == "yaml":
+    #             filename = self.dump_yaml(collection, collname, dbpath)
+    #         else:
+    #             raise ValueError("did not recognize file type for regolith")
+    #         to_add.append(os.path.join(db["path"], filename))
+    #     return to_add
 
     def close(self):
-        self.dbs = None
+        self.cifs = None
         self.closed = True
 
     def keys(self):
-        return self.dbs.keys()
+        return self.cifs.keys()
 
     def __getitem__(self, key):
-        return self.dbs[key]
+        return self.cifs[key]
 
     def collection_names(self, dbname, include_system_collections=True):
-        """Returns the collaction names for a database."""
-        return set(self.dbs[dbname].keys())
+        """Returns the collection names for a database."""
+        return set(self.cifs[dbname].keys())
 
     def all_documents(self, collname, copy=True):
         """Returns an iteratable over all documents in a collection."""
@@ -244,7 +215,7 @@ class FileSystemClient:
 
     def insert_one(self, dbname, collname, doc):
         """Inserts one document to a database/collection."""
-        coll = self.dbs[dbname][collname]
+        coll = self.cifs[dbname][collname]
         coll[doc["_id"]] = doc
 
     def insert_many(self, dbname, collname, docs):
@@ -277,3 +248,10 @@ class FileSystemClient:
         newdoc = dict(filter if doc is None else doc)
         newdoc.update(update)
         coll[newdoc["_id"]] = newdoc
+
+
+if __name__ == '__main__':
+    client = FileSystemClient("What's an rc")
+    client.load_cifs(None, "/Users/sl5035/Desktop/Columbia/Lab/BillingeLab/pydatarecognition/docs/examples/cifs/calculated")
+    for cif, po in client.cifs.items():
+        print(cif, po)
