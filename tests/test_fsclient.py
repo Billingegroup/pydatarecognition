@@ -3,6 +3,8 @@ import datetime
 import tempfile
 from pathlib import Path
 
+import pytest
+
 #from pydatarecognition.fsclient import date_encoder, dump_json, FileSystemClient
 from pydatarecognition.fsclient import FileSystemClient
 
@@ -47,7 +49,7 @@ def test_is_alive():
     actual = fsc.is_alive()
     assert actual == expected
 
-@mark.skip("Not written")
+@pytest.mark.skip("Not written")
 def test_open():
     pass
 
