@@ -1,13 +1,8 @@
-import tempfile
-from pathlib import Path
+from collections import defaultdict
 
 import pytest
 
-from collections import defaultdict
-from testfixtures import TempDirectory
-
 from pydatarecognition.fsclient import FileSystemClient
-
 
 #
 # def test_dump_json():
@@ -52,9 +47,21 @@ def test_open():
     fsc = FileSystemClient(rc)
     fsc.open()
 
+    # assert fsc.dbs == rc.databases
     assert isinstance(fsc.dbs, type(defaultdict(lambda: defaultdict(dict))))
     assert isinstance(fsc.chained_db, type(dict()))
     assert not fsc.closed
+
+
+def test_close():
+    fsc = FileSystemClient(rc)
+    assert fsc.open
+    # assert fsc.dbs == rc.databases
+    assert isinstance(fsc.dbs, type(defaultdict(lambda: defaultdict(dict))))
+
+    actual = fsc.close()
+    assert fsc.dbs is None
+    assert fsc.closed
 
 
 @pytest.mark.skip("Not written")
@@ -95,14 +102,6 @@ def test_dump_cif():
 @pytest.mark.skip("Not written")
 def test_dump_database():
     pass
-
-
-def test_close():
-    fsc = FileSystemClient(rc)
-    fsc.close()
-
-    assert fsc.dbs is None
-    assert fsc.closed
 
 
 @pytest.mark.skip("Not written")
