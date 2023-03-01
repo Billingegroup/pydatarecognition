@@ -224,6 +224,28 @@ def cif_read_ext(cif_file_path, client):
     return None
 
 
+def set_client(mpc_client='fs') -> str | None:
+    """
+    returns not implemented warning if mpc_client is 'mpc' and None if mpc_client is 'fs'
+
+    Parameters
+    ----------
+    mpc_client  str object 'mpc (mpcontribs)' or 'fs (filesystem)'
+                set 'fs' by default
+
+    Returns
+    -------
+    str: 'This feature is not yet implemented' if mpc_client='mpc'
+    None if mpc_client='fs'
+    """
+    if mpc_client == 'mpc':
+        return 'This function is not yet implemented'
+    elif mpc_client == 'fs':
+        return None
+    else:
+        return 'mpc_client must be either mpc or fs'
+
+
 def powdercif_to_json(po):
     json_object = {}
     if hasattr(po, 'iucrid'):
