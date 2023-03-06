@@ -1,8 +1,11 @@
 from collections import defaultdict
+from pathlib import Path
+from testfixtures import TempDirectory
 
 import pytest
 
 from pydatarecognition.fsclient import FileSystemClient
+from inputs.test_cifs import testciffiles_contents_expecteds
 
 #
 # def test_dump_json():
@@ -119,9 +122,16 @@ def test_all_documents():
     pass
 
 
-@pytest.mark.skip("Not written")
-def test_insert_one():
-    pass
+@pytest.mark.parametrize("cm", testciffiles_contents_expecteds)
+def test_insert_one(cm):
+    client = FileSystemClient(rc)
+
+    with TempDirectory() as d:
+        temp_dir = Path(d.path)
+        cif_bitstream = bytearray(cm[0], 'utf8')
+        d.write(f"test_cif.cif",
+                cif_bitstream)
+        test_cif_path = temp_dir / f"test_cif.cif"
 
 
 @pytest.mark.skip("Not written")
