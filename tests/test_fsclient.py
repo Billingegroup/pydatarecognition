@@ -138,17 +138,30 @@ def test_delete_one():
     pass
 
 
-cifs = [cif_read(Path("../docs/examples/cifs/calculated/bs0018IIIsup4.rtv.simulated.cif")),
-        cif_read(Path("../docs/examples/cifs/calculated/he5606SrLaZnRuO6_1173Ksup4.rtv.simulated.cif"))]
 def test_find_one():
     client = FileSystemClient(rc)
+    cif_path1 = "../docs/examples/cifs/calculated/bs0018IIIsup4.rtv.simulated.cif"
+    cif_path2 = "../docs/examples/cifs/calculated/he5606SrLaZnRuO6_1173Ksup4.rtv.simulated.cif"
+    cifs = [cif_read(Path(cif_path1)),
+            cif_read(Path(cif_path2))]
 
     with TempDirectory() as d:
         temp_dir = Path(d.path)
         json_dump(powdercif_to_json(cifs[0]), temp_dir / "right.json")
         json_dump(powdercif_to_json(cifs[1]), temp_dir / "wrong.json")
 
-    # TODO: Need insert_one?
+        # Tentative
+        expected = d.read(str(temp_dir / "right.json"), 'utf-8')
+
+        client.dbs['cifs']['calculated'][cif_path1.split('/')[-1][:-18]] = expected
+        client.dbs['cifs']['calculated'][cif_path2.split('/')[-1][:-18]] = d.read(str(temp_dir / "wrong.json"), 'utf-8')
+
+        actual = client.find_one('cifs', 'calculated', {'iucrid': 'bs0018'})
+
+        print(client.dbs['cifs']['calculated'].values())
+
+        assert actual == expected
+
 
 
 @pytest.mark.skip("Not written")
