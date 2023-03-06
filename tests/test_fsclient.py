@@ -1,8 +1,12 @@
 from collections import defaultdict
+from pathlib import Path
+from testfixtures import TempDirectory
 
 import pytest
+import tempfile
 
 from pydatarecognition.fsclient import FileSystemClient
+from pydatarecognition.cif_io import cif_read, powdercif_to_json, json_dump
 
 #
 # def test_dump_json():
@@ -134,9 +138,17 @@ def test_delete_one():
     pass
 
 
-@pytest.mark.skip("Not written")
+cifs = [cif_read(Path("../docs/examples/cifs/calculated/bs0018IIIsup4.rtv.simulated.cif")),
+        cif_read(Path("../docs/examples/cifs/calculated/he5606SrLaZnRuO6_1173Ksup4.rtv.simulated.cif"))]
 def test_find_one():
-    pass
+    client = FileSystemClient(rc)
+
+    with TempDirectory() as d:
+        temp_dir = Path(d.path)
+        json_dump(powdercif_to_json(cifs[0]), temp_dir / "right.json")
+        json_dump(powdercif_to_json(cifs[1]), temp_dir / "wrong.json")
+
+    # TODO: Need insert_one?
 
 
 @pytest.mark.skip("Not written")
