@@ -21,6 +21,7 @@ STEPSIZE_REGULAR_QGRID = 10**-3
 
 COLLECTION = "cif"
 
+<<<<<<< Updated upstream
 app = FastAPI()
 
 # Connect to mongodb
@@ -39,6 +40,15 @@ dois = np.genfromtxt(doifile, dtype='str')
 doi_dict = {}
 for i in range(len(dois)):
     doi_dict[dois[i][0]] = dois[i][1]
+=======
+app = FastAPI(docs_url=None, redoc_url=None)
+app.add_event_handler("startup", mongo_client.connect_db)
+app.add_event_handler("shutdown", mongo_client.close_mongo_connection)
+app.include_router(rest_api.router)
+app.mount("/static", StaticFiles(directory="pydatarecognition/static"), name="static")
+app.add_middleware(SessionMiddleware, secret_key='!secret')
+templates = Jinja2Templates(directory="pydatarecognition/templates")
+>>>>>>> Stashed changes
 
 
 
@@ -140,4 +150,4 @@ async def rank_cif(xtype: Literal["twotheta", "q"], wavelength: float, user_inpu
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host="localhost", reload=True)
+    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
