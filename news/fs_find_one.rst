@@ -1,6 +1,6 @@
 **Added:**
 
-* testing function for find_one function for filesystem
+* find_one function for filesystem client
 
 **Changed:**
 
