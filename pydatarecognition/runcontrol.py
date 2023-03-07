@@ -13,7 +13,18 @@ from collections.abc import (
 )
 from warnings import warn
 
+from rc_utils import is_string, ensure_string, always_false, ensure_databases, \
+    ensure_stores, ensure_email, noop, string_types
+
+
 FORBIDDEN_NAMES = frozenset(["del", "global"])
+DEFAULT_VALIDATORS = {
+    "backend": (is_string, ensure_string),
+    "builddir": (is_string, ensure_string),
+    "databases": (always_false, ensure_databases),
+    "stores": (always_false, ensure_stores),
+    "email": (always_false, ensure_email),
+}
 
 
 def warn_forbidden_name(forname, inname=None, rename=None):
@@ -197,14 +208,14 @@ class RunControl(object):
                 if m is not None:
                     validator, convertor = validators[vld]
             else:
-                validator, convertor = always_true, noop
+                validator, convertor = always_false, noop
         return value if validator(value) else convertor(value)
 
 
 def flatten(iterable):
     """Generator which returns flattened version of nested sequences."""
     for el in iterable:
-        if isinstance(el, basestring):
+        if isinstance(el, str):
             yield el
         elif isinstance(el, Iterable):
             for subel in flatten(el):
@@ -221,7 +232,7 @@ def flatten(iterable):
 def ishashable(x):
     """Tests if a value is hashable."""
     if isinstance(x, Hashable):
-        if isinstance(x, basestring):
+        if isinstance(x, string_types):
             return True
         elif isinstance(x, Iterable):
             return all(map(ishashable, x))
@@ -235,7 +246,7 @@ DEFAULT_RC = RunControl(
     _validators=DEFAULT_VALIDATORS,
     builddir="_build",
     mongodbpath=property(lambda self: os.path.join(self.builddir, "_dbpath")),
-    user_config=os.path.expanduser("~/.config/regolith/user.json"),
+    user_config=os.path.expanduser("~/.config/pydatarecognition/user.json"),
     force=False,
     database=None
 )
