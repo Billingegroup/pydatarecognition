@@ -1,6 +1,6 @@
-"""Run Control object for regolith
 """
-from __future__ import print_function
+Run Control object for pydatarecognition copied from regolith
+"""
 
 import json
 import os
