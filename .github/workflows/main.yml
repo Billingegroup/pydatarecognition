@@ -45,7 +45,7 @@ jobs:
           conda install --file requirements/run.txt
           conda install --file requirements/test.txt
           pip install .
-          pip install -r requirements/pip.txt
+          pip install -r requirements/pip_requirements.txt
 
       - name: Validate pydatarecognition
         shell: bash -l {0}
