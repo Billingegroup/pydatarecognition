@@ -105,3 +105,13 @@ def ensure_email(email):
     email["verbosity"] = int(email.get("verbosity", 0))
     email["tls"] = to_bool(email.get("tls", False))
     return email
+
+
+def dbdirname(db, rc):
+    """Gets the database dir name."""
+    if db.get("local", False) is False:
+        dbsdir = os.path.join(rc.builddir, "_dbs")
+        dbdir = os.path.join(dbsdir, db["name"])
+    else:
+        dbdir = db["url"]
+    return dbdir
