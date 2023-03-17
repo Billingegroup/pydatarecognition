@@ -15,10 +15,10 @@ jobs:
         matrix:
             os: ["ubuntu-latest"]
     steps:
-      - name: check out diffpy.pdfmorph
+      - name: check out pydatarecognition
         uses: actions/checkout@v3
         with:
-          repository: diffpy/diffpy.pdfmorph
+          repository: billingegroup/pydatarecognition
           # for bookkeeping have diffpy.pdfmorph at the same level as everything else in the
           # directory tree
           path: .
@@ -36,7 +36,7 @@ jobs:
           python-version: 3
           auto-activate-base: false
 
-      - name: install pdfmorph requirements
+      - name: install pydatarecognition requirements
         shell: bash -l {0}
         run: |
           conda config --set always_yes yes --set changeps1 no
@@ -45,12 +45,15 @@ jobs:
           conda install --file requirements/run.txt
           conda install --file requirements/test.txt
           pip install .
+          pip install --file requirements/pip.txt
 
-      - name: Validate pdfmorph
+      - name: Validate pydatarecognition
         shell: bash -l {0}
         run: |
           conda activate test
           coverage run run_tests.py
           coverage report -m
-          codecov
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
 
