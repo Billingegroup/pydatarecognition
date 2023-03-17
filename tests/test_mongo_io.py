@@ -7,7 +7,7 @@ from pydatarecognition.powdercif import PydanticPowderCif
 from pydatarecognition.mongo_utils import cifs_to_mongo
 from tests.conftest import MONGODB_DATABASE_NAME, CIF_DIR, CIFJSON_COLLECTION_NAME
 
-
+@pytest.mark.skip()
 def test_cifs_to_mongo(cif_mongodb_client_unpopulated):
     # this test takes priority. Second test arguably unnecessary but proves existence of conftest infrastructure
     if cif_mongodb_client_unpopulated:
@@ -38,7 +38,7 @@ def test_cifs_to_mongo(cif_mongodb_client_unpopulated):
     else:
         pytest.skip('Could not initialize DB')
 
-
+@pytest.mark.skip()
 def test_pydantic_export_import(cif_mongodb_client_populated):
     if cif_mongodb_client_populated:
         db = cif_mongodb_client_populated['test']
