@@ -6,7 +6,8 @@ from collections import defaultdict
 from copy import deepcopy
 import datetime
 from glob import iglob
-import yaml
+from ruamel.yaml import YAML
+from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 from pydatarecognition.rc_utils import dbpathname
 
@@ -30,8 +31,8 @@ class DelayedKeyboardInterrupt:
             self.old_handler(*self.signal_received)
 
 
-# YAML_BASE_MAP = {CommentedMap: dict,
-#                  CommentedSeq: list}
+YAML_BASE_MAP = {CommentedMap: dict,
+                 CommentedSeq: list}
 
 
 def _rec_re_type(i):
@@ -81,11 +82,11 @@ def dump_json(filename, docs, date_handler=None):
 def load_yaml(filename, return_inst=False, loader=None):
     """Loads a YAML file and returns a dict of its documents."""
     if loader is None:
-        inst = yaml
+        inst = YAML()
     else:
         inst = loader
     with open(filename, encoding="utf-8") as fh:
-        docs = inst.safe_load(fh)
+        docs = inst.load(fh)
         docs = _rec_re_type(docs)
     for _id, doc in docs.items():
         doc["_id"] = _id
@@ -94,14 +95,14 @@ def load_yaml(filename, return_inst=False, loader=None):
 
 def dump_yaml(filename, docs, inst=None):
     """Dumps a dict of documents into a file."""
-    inst = yaml if inst is None else inst
+    inst = YAML() if inst is None else inst
     inst.representer.ignore_aliases = lambda *data: True
     inst.indent(mapping=2, sequence=4, offset=2)
-    sorted_dict = yaml.comments.CommentedMap()
+    sorted_dict = inst.comments.CommentedMap()
     for k in sorted(docs):
         doc = docs[k]
         _id = doc.pop("_id")
-        sorted_dict[k] = yaml.comments.CommentedMap()
+        sorted_dict[k] = inst.comments.CommentedMap()
         for kk in sorted(doc.keys()):
             sorted_dict[k][kk] = doc[kk]
     with open(filename, "w", encoding="utf-8") as fh:
