@@ -7,10 +7,6 @@ from collections import defaultdict
 # import datetime
 # from glob import iglob
 
-# import ruamel.yaml
-# from ruamel.yaml import YAML
-# from ruamel.yaml.comments import CommentedMap, CommentedSeq
-
 # from regolith.tools import dbpathname
 
 # import signal
