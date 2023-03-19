@@ -1,5 +1,7 @@
 # pyDataRecognition
 
+![example workflow](https://github.com/billingegroup/pydatarecognition/actions/workflows/main.yml/badge.svg)
+
 ## Preprint on arXiv 
 For a thorough description of the project, please see the paper by Özer *et al.*: 
 https://doi.org/10.48550/arXiv.2204.00434.

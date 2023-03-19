@@ -1,20 +1,17 @@
 """Contains a client database backed by the file system."""
-# import json
-# import os
-# import sys
+import json
+import os
+import sys
 from collections import defaultdict
-# from copy import deepcopy
-# import datetime
-# from glob import iglob
+from copy import deepcopy
+import datetime
+from glob import iglob
 
-# import ruamel.yaml
-# from ruamel.yaml import YAML
-# from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
-# from regolith.tools import dbpathname
+from pydatarecognition.rc_utils import dbpathname
 
-# import signal
-# import logging
+import signal
+import logging
 
 
 class DelayedKeyboardInterrupt:
