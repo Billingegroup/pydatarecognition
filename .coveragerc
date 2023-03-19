@@ -1,6 +1,6 @@
 [run]
 source = 
-    billingegroup/pydatarecognition/
+    ./pydatarecognition/
 [report]
 omit =
     */python?.?/*
