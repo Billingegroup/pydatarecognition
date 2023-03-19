@@ -7,9 +7,6 @@ from copy import deepcopy
 import datetime
 from glob import iglob
 
-import ruamel.yaml
-from ruamel.yaml import YAML
-from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 from pydatarecognition.rc_utils import dbpathname
 
