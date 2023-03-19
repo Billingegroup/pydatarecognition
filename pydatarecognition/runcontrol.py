@@ -299,12 +299,9 @@ def connect_db(rc, colls=None):
 
     Returns
     -------
-    chained_db:
-      The chained databases in the form of a document
     dbs:
        The databases in the form of a runcontrol client
     '''
     with connect(rc, dbs=colls) as rc.client:
         dbs = rc.client.dbs
-        chained_db = rc.client.chained_db
-    return chained_db, dbs
+    return dbs
