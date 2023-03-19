@@ -14,9 +14,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import datetime
 
-#from ruamel.yaml import YAML
-
-# from pydatarecognition.rc_utils import
+from ruamel.yaml import YAML
 
 #
 # setup mongo
@@ -34,8 +32,8 @@ except ImportError:
 
 from pymongo.collection import Collection
 
-# from pydatarecognition.rc_utils import dbpathname, fallback
-# from pydatarecognition import fsclient
+from pydatarecognition.rc_utils import dbpathname, fallback
+from pydatarecognition import fsclient
 
 if not MONGO_AVAILABLE:
     ON_PYMONGO_V2 = ON_PYMONGO_V3 = False
@@ -144,7 +142,6 @@ def export_json(collection: str, dbpath: str, dbname: str, host: str = None, uri
         raise exc
 
 
-
 def load_mongo_col(col: Collection) -> dict:
     """Load the pymongo collection to a dictionary.
 
@@ -214,7 +211,7 @@ def bson_cleanup(doc: dict):
     return doc
 
 
-# @fallback(ON_PYMONGO_V2, None)
+@fallback(ON_PYMONGO_V2, None)
 class InsertOneProxy(object):
     def __init__(self, inserted_id, acknowledged):
         self.inserted_id = inserted_id

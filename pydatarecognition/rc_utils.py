@@ -122,3 +122,13 @@ def dbpathname(db, rc):
     dbdir = dbdirname(db, rc)
     dbpath = os.path.join(dbdir, db["path"])
     return dbpath
+
+
+def fallback(cond, backup):
+    """Decorator for returning the object if cond is true and a backup if
+    cond is false. """
+
+    def dec(obj):
+        return obj if cond else backup
+
+    return dec
