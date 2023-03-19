@@ -4,18 +4,21 @@ from copy import deepcopy, copy
 
 from pydatarecognition.database import connect
 from pydatarecognition.runcontrol import DEFAULT_RC, load_rcfile
-from pydatarecognition.tools import all_docs_from_collection
-from pydatarecognition.schemas import EXEMPLARS
 
 
 def test_collection_retrieval_python(make_mixed_db):
+    def all_docs_from_collection(client, collname, copy=True):
+        """Yield all entries in all collections of a given name in a given
+        database. """
+        yield from client.all_documents(collname, copy=copy)
+
     if make_mixed_db is False:
         pytest.skip("Mongoclient failed to start")
     else:
         repo, fs_coll, mongo_coll = make_mixed_db
     os.chdir(repo)
     rc = copy(DEFAULT_RC)
-    rc._update(load_rcfile("regolithrc.json"))
+    rc._update(load_rcfile("pydr_rc.json"))
     with connect(rc) as rc.client:
         fs_test_dict = dict(list(all_docs_from_collection(rc.client, "abstracts"))[0])
         mongo_test_dict = dict(list(all_docs_from_collection(rc.client, "assignments"))[0])
