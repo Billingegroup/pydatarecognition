@@ -1,9 +1,8 @@
 """Helps manage mongodb setup and connections."""
 import os
 from contextlib import contextmanager
-from warnings import warn
 
-from client_manager import ClientManager
+from pydatarecognition.client_manager import ClientManager
 
 
 def load_local_database(db, client, rc):
