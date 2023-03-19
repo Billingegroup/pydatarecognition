@@ -1,18 +1,9 @@
-import datetime
-
-import tempfile
-from pathlib import Path
+from collections import defaultdict
 
 import pytest
 
-#from pydatarecognition.fsclient import date_encoder, dump_json, FileSystemClient
 from pydatarecognition.fsclient import FileSystemClient
 
-# def test_date_encoder():
-#     day = datetime.date(2021,1,1)
-#     time = datetime.datetime(2021, 5, 18, 6, 28, 21, 504549)
-#     assert date_encoder(day) == '2021-01-01'
-#     assert date_encoder(time) == '2021-05-18T06:28:21.504549'
 #
 # def test_dump_json():
 #     doc = {"first": {"_id": "first", "name": "me", "date": datetime.date(2021,5,1),
@@ -42,15 +33,112 @@ from pydatarecognition.fsclient import FileSystemClient
 DEFAULT_RC = {}
 rc = DEFAULT_RC
 
+
 # FileSystemClient methods tested here
 def test_is_alive():
-    expected = True  #filesystem is always alive!
+    expected = True  # filesystem is always alive!
     fsc = FileSystemClient(rc)
     actual = fsc.is_alive()
+
     assert actual == expected
 
-@pytest.mark.skip("Not written")
+
 def test_open():
+    fsc = FileSystemClient(rc)
+    fsc.open()
+
+    # assert fsc.dbs == rc.databases
+    assert isinstance(fsc.dbs, type(defaultdict(lambda: defaultdict(dict))))
+    assert isinstance(fsc.chained_db, type(dict()))
+    assert not fsc.closed
+
+
+def test_close():
+    fsc = FileSystemClient(rc)
+    assert fsc.open
+    # assert fsc.dbs == rc.databases
+    assert isinstance(fsc.dbs, type(defaultdict(lambda: defaultdict(dict))))
+
+    actual = fsc.close()
+    assert fsc.dbs is None
+    assert fsc.closed
+
+
+@pytest.mark.skip("Not written")
+def test_load_json():
     pass
 
-# and so on.....
+
+@pytest.mark.skip("Not written")
+def test_load_yaml():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_load_cif():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_load_database():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_dump_json():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_dump_yaml():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_dump_cif():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_dump_database():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_keys():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_collection_names():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_all_documents():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_insert_one():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_insert_many():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_delete_one():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_find_one():
+    pass
+
+
+@pytest.mark.skip("Not written")
+def test_update_one():
+    pass

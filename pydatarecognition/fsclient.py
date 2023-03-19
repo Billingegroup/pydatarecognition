@@ -1,16 +1,17 @@
 """Contains a client database backed by the file system."""
-# import json
-# import os
-# import sys
+import json
+import os
+import sys
 from collections import defaultdict
-# from copy import deepcopy
-# import datetime
-# from glob import iglob
+from copy import deepcopy
+import datetime
+from glob import iglob
 
-# from regolith.tools import dbpathname
 
-# import signal
-# import logging
+from pydatarecognition.rc_utils import dbpathname
+
+import signal
+import logging
 
 
 class DelayedKeyboardInterrupt:
