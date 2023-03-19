@@ -115,3 +115,10 @@ def dbdirname(db, rc):
     else:
         dbdir = db["url"]
     return dbdir
+
+
+def dbpathname(db, rc):
+    """Gets the database path name."""
+    dbdir = dbdirname(db, rc)
+    dbpath = os.path.join(dbdir, db["path"])
+    return dbpath

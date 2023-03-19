@@ -13,9 +13,9 @@ from collections.abc import (
 )
 from warnings import warn
 
-from rc_utils import is_string, ensure_string, always_false, ensure_databases, \
+from pydatarecognition.rc_utils import is_string, ensure_string, always_false, ensure_databases, \
     ensure_stores, ensure_email, noop, string_types
-from database import connect
+from pydatarecognition.database import connect
 
 
 FORBIDDEN_NAMES = frozenset(["del", "global"])
@@ -247,7 +247,7 @@ DEFAULT_RC = RunControl(
     _validators=DEFAULT_VALIDATORS,
     builddir="_build",
     mongodbpath=property(lambda self: os.path.join(self.builddir, "_dbpath")),
-    user_config=os.path.expanduser("~/.config/pydatarecognition/user.json"),
+    user_config=os.path.expanduser("~/.config/pydr/user.json"),
     force=False,
     database=None
 )
@@ -299,9 +299,12 @@ def connect_db(rc, colls=None):
 
     Returns
     -------
+    chained_db:
+      The chained databases in the form of a document
     dbs:
        The databases in the form of a runcontrol client
     '''
     with connect(rc, dbs=colls) as rc.client:
         dbs = rc.client.dbs
-    return dbs
+        chained_db = rc.client.chained_db
+    return chained_db, dbs
