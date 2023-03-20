@@ -98,11 +98,11 @@ def dump_yaml(filename, docs, inst=None):
     inst = YAML() if inst is None else inst
     inst.representer.ignore_aliases = lambda *data: True
     inst.indent(mapping=2, sequence=4, offset=2)
-    sorted_dict = inst.comments.CommentedMap()
+    sorted_dict = CommentedMap()
     for k in sorted(docs):
         doc = docs[k]
         _id = doc.pop("_id")
-        sorted_dict[k] = inst.comments.CommentedMap()
+        sorted_dict[k] = CommentedMap()
         for kk in sorted(doc.keys()):
             sorted_dict[k][kk] = doc[kk]
     with open(filename, "w", encoding="utf-8") as fh:
