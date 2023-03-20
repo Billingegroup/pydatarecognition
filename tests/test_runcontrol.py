@@ -7,22 +7,9 @@ from pathlib import Path
 from pydatarecognition.runcontrol import DEFAULT_RC, load_rcfile, filter_databases, \
     connect_db
 from pydatarecognition.database import connect
+from tests.inputs.pydr_rc import pydr_rc
 
 
-pydr_rc = b"""
-{
-  "groupname": "Billinge Group",
-  "databases": [
-    {
-      "name": "calculated",
-      "url": ".",
-      "public": false,
-      "path": "db",
-      "local": true
-    }
-  ]
-}
-"""
 def test_connect_db():
     rc = copy.copy(DEFAULT_RC)
 

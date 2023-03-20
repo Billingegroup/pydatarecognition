@@ -3,11 +3,14 @@ from pathlib import Path
 from testfixtures import TempDirectory
 
 import pytest
+import os
 
 from pydatarecognition.fsclient import FileSystemClient
-from inputs.test_cifs import testciffiles_contents_expecteds
+from pydatarecognition.runcontrol import DEFAULT_RC, load_rcfile, connect_db
+from tests.inputs.test_cifs import testciffiles_contents_expecteds
+from tests.inputs.pydr_rc import pydr_rc
 
-#
+
 # def test_dump_json():
 #     doc = {"first": {"_id": "first", "name": "me", "date": datetime.date(2021,5,1),
 #            "test_list": [5, 4]},
@@ -21,20 +24,13 @@ from inputs.test_cifs import testciffiles_contents_expecteds
 #         actual = f.read()
 #     assert actual == json_doc
 
-# todo:
-# build a runcontrol object as in regolith.  have it created globally in the
-# tests for  reuse in all the tests (look for DEFAULT_RC in regoith tests)
-# for now:
-# DEFAULT_RC = RunControl(
-#     _validators=DEFAULT_VALIDATORS,
-#     builddir="_build",
-#     mongodbpath=property(lambda self: os.path.join(self.builddir, "_dbpath")),
-#     user_config=os.path.expanduser("~/.config/regolith/user.json"),
-#     force=False,
-#     database=None
-# )
-DEFAULT_RC = {}
+
 rc = DEFAULT_RC
+with TempDirectory() as d:
+    temp_dir = Path(d.path)
+    d.write(f"pydr_rc.json",
+            pydr_rc)
+    rc._update(load_rcfile(temp_dir / "pydr_rc.json"))
 
 
 # FileSystemClient methods tested here
@@ -50,7 +46,9 @@ def test_open():
     fsc = FileSystemClient(rc)
     fsc.open()
 
-    # assert fsc.dbs == rc.databases
+    rc_dbs = connect_db(rc)[1]
+    assert fsc.dbs == rc_dbs
+
     assert isinstance(fsc.dbs, type(defaultdict(lambda: defaultdict(dict))))
     assert isinstance(fsc.chained_db, type(dict()))
     assert not fsc.closed
@@ -59,10 +57,13 @@ def test_open():
 def test_close():
     fsc = FileSystemClient(rc)
     assert fsc.open
-    # assert fsc.dbs == rc.databases
+
+    rc_dbs = connect_db(rc)[1]
+    assert fsc.dbs == rc_dbs
+
     assert isinstance(fsc.dbs, type(defaultdict(lambda: defaultdict(dict))))
 
-    actual = fsc.close()
+    fsc.close()
     assert fsc.dbs is None
     assert fsc.closed
 
