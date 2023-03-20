@@ -7,9 +7,11 @@ import tempfile
 
 from pydatarecognition.fsclient import FileSystemClient
 from pydatarecognition.cif_io import cif_read, powdercif_to_json, json_dump
-from inputs.test_calculated_cifs_input import calculated_cifs
+from pydatarecognition.runcontrol import DEFAULT_RC, load_rcfile
+from tests.inputs.test_calculated_cifs_input import calculated_cifs
+from tests.inputs.pydr_rc import pydr_rc
 
-#
+
 # def test_dump_json():
 #     doc = {'first': {'_id': 'first', 'name': 'me', 'date': datetime.date(2021,5,1),
 #            'test_list': [5, 4]},
@@ -23,20 +25,13 @@ from inputs.test_calculated_cifs_input import calculated_cifs
 #         actual = f.read()
 #     assert actual == json_doc
 
-# todo:
-# build a runcontrol object as in regolith.  have it created globally in the
-# tests for  reuse in all the tests (look for DEFAULT_RC in regoith tests)
-# for now:
-# DEFAULT_RC = RunControl(
-#     _validators=DEFAULT_VALIDATORS,
-#     builddir='_build',
-#     mongodbpath=property(lambda self: os.path.join(self.builddir, '_dbpath')),
-#     user_config=os.path.expanduser('~/.config/regolith/user.json'),
-#     force=False,
-#     database=None
-# )
-DEFAULT_RC = {}
+
 rc = DEFAULT_RC
+with TempDirectory() as d:
+    temp_dir = Path(d.path)
+    d.write(f"pydr_rc.json",
+            pydr_rc)
+    rc._update(load_rcfile(temp_dir / "pydr_rc.json"))
 
 
 # FileSystemClient methods tested here
