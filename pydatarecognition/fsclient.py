@@ -1,20 +1,18 @@
 """Contains a client database backed by the file system."""
-# import json
-# import os
-# import sys
+import json
+import os
+import sys
 from collections import defaultdict
-# from copy import deepcopy
-# import datetime
-# from glob import iglob
+from copy import deepcopy
+import datetime
+from glob import iglob
+from ruamel.yaml import YAML
+from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
-# import ruamel.yaml
-# from ruamel.yaml import YAML
-# from ruamel.yaml.comments import CommentedMap, CommentedSeq
+from pydatarecognition.rc_utils import dbpathname
 
-# from regolith.tools import dbpathname
-
-# import signal
-# import logging
+import signal
+import logging
 
 
 class DelayedKeyboardInterrupt:
@@ -33,9 +31,8 @@ class DelayedKeyboardInterrupt:
             self.old_handler(*self.signal_received)
 
 
-
-# YAML_BASE_MAP = {CommentedMap: dict,
-#                  CommentedSeq: list}
+YAML_BASE_MAP = {CommentedMap: dict,
+                 CommentedSeq: list}
 
 
 def _rec_re_type(i):
@@ -101,16 +98,16 @@ def dump_yaml(filename, docs, inst=None):
     inst = YAML() if inst is None else inst
     inst.representer.ignore_aliases = lambda *data: True
     inst.indent(mapping=2, sequence=4, offset=2)
-    sorted_dict = ruamel.yaml.comments.CommentedMap()
+    sorted_dict = CommentedMap()
     for k in sorted(docs):
         doc = docs[k]
         _id = doc.pop("_id")
-        sorted_dict[k] = ruamel.yaml.comments.CommentedMap()
+        sorted_dict[k] = CommentedMap()
         for kk in sorted(doc.keys()):
             sorted_dict[k][kk] = doc[kk]
     with open(filename, "w", encoding="utf-8") as fh:
         with DelayedKeyboardInterrupt():
-            inst.dump(sorted_dict, stream=fh)
+            inst.safe_dump(sorted_dict, stream=fh)
 
 
 def json_to_yaml(inp, out):
