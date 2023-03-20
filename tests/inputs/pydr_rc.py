@@ -3,7 +3,7 @@ pydr_rc = b"""
   "groupname": "Billinge Group",
   "databases": [
     {
-      "name": "calculated",
+      "name": "local",
       "url": ".",
       "public": false,
       "path": "db",

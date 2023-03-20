@@ -46,8 +46,9 @@ def test_open():
     fsc = FileSystemClient(rc)
     fsc.open()
 
-    rc_dbs = connect_db(rc)[1]
-    assert fsc.dbs == rc_dbs
+    actual = fsc.dbs
+    expected = connect_db(rc)[1]
+    assert actual == expected
 
     assert isinstance(fsc.dbs, type(defaultdict(lambda: defaultdict(dict))))
     assert isinstance(fsc.chained_db, type(dict()))
@@ -58,8 +59,9 @@ def test_close():
     fsc = FileSystemClient(rc)
     assert fsc.open
 
-    rc_dbs = connect_db(rc)[1]
-    assert fsc.dbs == rc_dbs
+    actual = fsc.dbs
+    expected = connect_db(rc)[1]
+    assert actual == expected
 
     assert isinstance(fsc.dbs, type(defaultdict(lambda: defaultdict(dict))))
 
@@ -127,12 +129,14 @@ def test_all_documents():
 def test_insert_one(cm):
     client = FileSystemClient(rc)
 
-    with TempDirectory() as d:
-        temp_dir = Path(d.path)
+    with TempDirectory() as di:
+        temp_dir = Path(di.path)
         cif_bitstream = bytearray(cm[0], 'utf8')
         d.write(f"test_cif.cif",
                 cif_bitstream)
         test_cif_path = temp_dir / f"test_cif.cif"
+
+    # client.insert_one("local", "calculated", )
 
 
 @pytest.mark.skip("Not written")
