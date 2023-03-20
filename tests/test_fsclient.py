@@ -7,7 +7,7 @@ import os
 
 from pydatarecognition.fsclient import FileSystemClient
 from pydatarecognition.runcontrol import DEFAULT_RC, load_rcfile, connect_db
-from tests.inputs.test_cifs import testciffiles_contents_expecteds
+from tests.inputs.test_cif_json import test_cif_json
 from tests.inputs.pydr_rc import pydr_rc
 
 
@@ -125,18 +125,19 @@ def test_all_documents():
     pass
 
 
-@pytest.mark.parametrize("cm", testciffiles_contents_expecteds)
-def test_insert_one(cm):
+def test_insert_one():
     client = FileSystemClient(rc)
 
-    with TempDirectory() as di:
-        temp_dir = Path(di.path)
-        cif_bitstream = bytearray(cm[0], 'utf8')
-        d.write(f"test_cif.cif",
-                cif_bitstream)
-        test_cif_path = temp_dir / f"test_cif.cif"
+    # with TempDirectory() as di:
+    #     temp_dir = Path(di.path)
+    #     cif_bitstream = bytearray(cm[0], 'utf8')
+    #     d.write(f"test_cif.cif",
+    #             cif_bitstream)
+    #     test_cif_path = temp_dir / f"test_cif.cif"
 
-    # client.insert_one("local", "calculated", )
+    client.insert_one("local", "calculated", test_cif_json)
+
+    assert True
 
 
 @pytest.mark.skip("Not written")
