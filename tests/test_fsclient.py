@@ -23,8 +23,8 @@ from tests.inputs.pydr_rc import pydr_rc
 #         actual = f.read()
 #     assert actual == json_doc
 
+
 rc = DEFAULT_RC
-rc._update(pydr_rc)
 
 
 # FileSystemClient methods tested here
@@ -119,20 +119,27 @@ def test_all_documents():
     pass
 
 
-@pytest.mark.skip("Not written")
-def test_insert_one():
+test_insert_cif = [{'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'},
+                   {'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'hi'}]
+@pytest.mark.parametrize('tc', test_insert_cif)
+def test_insert_one(make_db, make_bad_db, tc):
+    db_path = make_db
+    pydr_rc['databases'][0]['url'] = db_path
+    rc._update(pydr_rc)  # TODO: Is there a way to update rc at a global scope so that we don't have to write this every time we run the test functions?
+
     client = FileSystemClient(rc)
+    client.open()
 
-    # with TempDirectory() as di:
-    #     temp_dir = Path(di.path)
-    #     cif_bitstream = bytearray(cm[0], 'utf8')
-    #     d.write(f"test_cif.cif",
-    #             cif_bitstream)
-    #     test_cif_path = temp_dir / f"test_cif.cif"
+    actual = client.dbs
+    expected = connect_db(rc)[1]
+    assert actual == expected
 
-    client.insert_one("local", "calculated", test_cif_json)
+    dbname = 'local'
+    collname = 'calculated'
 
-    assert True
+    client.insert_one(dbname, collname, tc)
+
+    assert list(client.dbs[dbname][collname].values())[0] == tc  # TODO: How to reformat
 
 
 @pytest.mark.skip("Not written")
