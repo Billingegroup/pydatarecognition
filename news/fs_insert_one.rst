@@ -1,10 +1,10 @@
 **Added:**
 
-* testing function for inserting one document to the filesystem database
+* function for inserting one document to the filesystem database
 
 **Changed:**
 
-* insert_one function for the filesystem
+* <news item>
 
 **Deprecated:**
 
