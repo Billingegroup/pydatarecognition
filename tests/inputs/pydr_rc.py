@@ -1,14 +1,12 @@
-pydr_rc = b"""
-{
+pydr_rc = {
   "groupname": "Billinge Group",
   "databases": [
     {
       "name": "local",
       "url": ".",
-      "public": false,
+      "public": False,
       "path": "db",
-      "local": true
+      "local": True
     }
   ]
 }
-"""

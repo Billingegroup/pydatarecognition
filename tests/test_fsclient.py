@@ -6,7 +6,7 @@ import pytest
 import os
 
 from pydatarecognition.fsclient import FileSystemClient
-from pydatarecognition.runcontrol import DEFAULT_RC, load_rcfile, connect_db
+from pydatarecognition.runcontrol import DEFAULT_RC, connect_db
 from tests.inputs.test_cif_json import test_cif_json
 from tests.inputs.pydr_rc import pydr_rc
 
@@ -26,11 +26,7 @@ from tests.inputs.pydr_rc import pydr_rc
 
 
 rc = DEFAULT_RC
-with TempDirectory() as d:
-    temp_dir = Path(d.path)
-    d.write(f"pydr_rc.json",
-            pydr_rc)
-    rc._update(load_rcfile(temp_dir / "pydr_rc.json"))
+rc._update(pydr_rc)
 
 
 # FileSystemClient methods tested here
