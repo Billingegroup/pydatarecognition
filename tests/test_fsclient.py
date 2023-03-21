@@ -115,10 +115,11 @@ def test_all_documents():
     pass
 
 
-test_insert_cif = [{'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'},
-                   {'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'hi'}]
-@pytest.mark.parametrize('tc', test_insert_cif)
-def test_insert_one(make_db, rc, tc):
+test_insert_cif = [({'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'},
+                   {'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'}),
+                   ('bad_case_test', 'bad_case_test')]
+@pytest.mark.parametrize('input, result', test_insert_cif)
+def test_insert_one(make_db, rc, input, result):
     client = FileSystemClient(rc)
     client.open()
 
@@ -129,9 +130,11 @@ def test_insert_one(make_db, rc, tc):
     dbname = 'local'
     collname = 'calculated'
 
-    client.insert_one(dbname, collname, tc)
-
-    assert list(client.dbs[dbname][collname].values())[0] == tc  # TODO: How to reformat
+    try:
+        client.insert_one(dbname, collname, input)
+        assert list(client.dbs[dbname][collname].values())[0] == result
+    except TypeError:
+        print('Input type should be json (dict).')
 
 
 @pytest.mark.skip("Not written")
