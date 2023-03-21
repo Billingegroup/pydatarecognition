@@ -9,12 +9,16 @@ from pymongo import errors as mongo_errors
 from xonsh.lib import subprocess
 from xonsh.lib.os import rmtree
 from pydatarecognition.powdercif import storage, BUCKET_NAME
+from pydatarecognition.fsclient import dump_yaml
+from tests.inputs.exemplars import EXEMPLARS
 from google.cloud.exceptions import Conflict
+from copy import deepcopy
 
 
 OUTPUT_FAKE_DB = False  # always turn it to false after you used it
 MONGODB_DATABASE_NAME = "test"
-CIF_DIR = os.path.join(os.pardir, 'docs\\examples\\cifs')
+FS_DATABASE_NAME = "test"
+CIF_DIR = os.path.join(os.pardir, 'docs/examples/cifs/calculated')
 CIFJSON_COLLECTION_NAME = "cif_json"
 
 
@@ -28,10 +32,105 @@ def cif_mongodb_client_unpopulated():
     yield from cif_mongodb_client(False)
 
 
+@pytest.fixture(scope="session")
+def make_db():
+    """A test fixture that creates and destroys a git repo in a temporary
+    directory.
+    This will yield the path to the repo.
+    """
+    cwd = os.getcwd()
+    name = "pydr_fake"
+    repo = os.path.join(tempfile.gettempdir(), name)
+    if os.path.exists(repo):
+        rmtree(repo)
+    os.mkdir(repo)
+    os.chdir(repo)
+    with open("pydr_rc.json", "w") as f:
+        json.dump(
+            {
+                "default_user_id": "sbillinge",
+                "groupname": "billinge-group",
+                "databases": [
+                    {
+                        "name": "test",
+                        "url": repo,
+                        "public": True,
+                        "path": "db",
+                        "local": True,
+                        "backend": "filesystem"
+                    }
+                ]
+            },
+            f
+        )
+    fspath = os.path.join(repo, 'db')
+    os.mkdir(fspath)
+    example_cifs_to_fs(fspath)
+    yield repo
+    os.chdir(cwd)
+    if not OUTPUT_FAKE_DB:
+        rmtree(repo)
+
+
+@pytest.fixture(scope="session")
+def make_bad_db():
+    """A test fixture that creates and destroys a git repo in a temporary
+    directory.
+    This will yield the path to the repo.
+    """
+    cwd = os.getcwd()
+    name = "pydr_fake_bad"
+    repo = os.path.join(tempfile.gettempdir(), name)
+    if os.path.exists(repo):
+        rmtree(repo)
+    os.mkdir(repo)
+    os.chdir(repo)
+    with open("pydr_rc.json", "w") as f:
+        json.dump(
+            {
+                "default_user_id": "sbillinge",
+                "groupname": "billinge-group",
+                "databases": [
+                    {
+                        "name": "test",
+                        "url": repo,
+                        "public": True,
+                        "path": "db",
+                        "local": True,
+                        "backend": "filesystem"
+                    }
+                ]
+            },
+            f
+        )
+    os.mkdir('db')
+    # Write collection docs
+    for coll, example in deepcopy(EXEMPLARS).items():
+        if isinstance(example, list):
+            d = {dd["_id"]: dd for dd in example}
+        else:
+            d = {example["_id"]: example}
+        d.update({"bad": {"_id": "bad", "bad": True}})
+        if coll == "presentations":
+            d.update(
+                {
+                    "bad_inst": {
+                        "_id": "bad_inst",
+                        "institution": "noinstitution",
+                        "department": "nodept",
+                    }
+                }
+            )
+        dump_yaml("db/{}.yaml".format(coll), d)
+    yield repo
+    os.chdir(cwd)
+    rmtree(repo)
+
+
 def cif_mongodb_client(populated: bool = False) -> MongoClient:
     """A test fixture that creates and destroys a git repo in a temporary
     directory, as well as a mongo database.
-    This will yield a the mongo client with a database named test and collection within named cif_json.
+    This will yield a mongo client with a database named test and collection within named cif_json.
     The collection will contain the test_cif_full from the inputs folder
     """
     try:
@@ -114,6 +213,23 @@ def shut_down_fork(forked, repo):
                   f'\"db.shutdownServer()\"\" into command line manually')
 
 
+def example_cifs_to_fs(fspath, collection_list=None):
+    exemplars_copy = deepcopy(EXEMPLARS)
+    if collection_list is None:
+        exemplars = exemplars_copy
+    else:
+        exemplars = {k: exemplars_copy[k] for k in collection_list if k in exemplars_copy}
+    cwd = os.getcwd()
+    os.chdir(fspath)
+    for coll, example in exemplars.items():
+        if isinstance(example, list):
+            d = {dd["_id"]: dd for dd in example}
+        else:
+            d = {example["_id"]: example}
+        dump_yaml("{}.yaml".format(coll), d)
+    os.chdir(cwd)
+
+
 def example_cifs_to_mongo(mongo_db_name):
     from pydatarecognition.cif_io import cif_read
     client = MongoClient('localhost', serverSelectionTimeoutMS=2000)
@@ -136,3 +252,5 @@ def example_cifs_to_mongo(mongo_db_name):
             print(e)
     return client
 
+if __name__ == '__main__':
+    example_cifs_to_mongo('test')

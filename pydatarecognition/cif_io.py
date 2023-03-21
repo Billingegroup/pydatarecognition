@@ -11,7 +11,7 @@ DEG = "deg"
 def cif_read(cif_file_path, verbose=None):
     '''
     given a cif file-path, reads the cif and returns the cif data
-    
+
     Parameters
     ----------
     cif_file_path  pathlib.Path object
@@ -227,7 +227,7 @@ def cif_read_ext(cif_file_path, client):
 def powdercif_to_json(po):
     json_object = {}
     if hasattr(po, 'iucrid'):
-        json_object['iucrid'] = po.iucrid
+        json_object['_id'] = po.iucrid
     if hasattr(po, 'wavelength'):
         json_object['wavelength'] = po.wavelength
     if hasattr(po, 'ttheta'):
@@ -326,7 +326,7 @@ def rank_write(cif_ranks, output_path, ranktype):
 def terminal_print(rank_doi_score_txt):
     '''
     given an iterable object, the object is printed to the terminal, encapsulated by 80 dashes before and after.
-    
+
     Parameters
     ----------
     iterable_object  iterable object
@@ -356,6 +356,5 @@ def print_story(user_input, args, ciffiles, skipped_cifs):
 
 if __name__=="__main__":
     import pathlib
-    toubling_path = pathlib.Path(os.path.join(os.pardir, 'docs\\examples\\cifs\\kd5015Mg3OH5Cl-4H20sup2.rtv.combined.cif'))
-    po = cif_read(toubling_path)
-    po.q
+    toubling_path = pathlib.Path(os.path.join(os.pardir, 'docs/examples/cifs/measured/ps5069IIIsup4.rtv.combined.cif'))
+    json_dump(powdercif_to_json(cif_read(toubling_path)), pathlib.Path('../test1.json'))
