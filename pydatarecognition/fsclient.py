@@ -107,7 +107,7 @@ def dump_yaml(filename, docs, inst=None):
             sorted_dict[k][kk] = doc[kk]
     with open(filename, "w", encoding="utf-8") as fh:
         with DelayedKeyboardInterrupt():
-            inst.safe_dump(sorted_dict, stream=fh)
+            inst.dump(sorted_dict, stream=fh)
 
 
 def json_to_yaml(inp, out):
