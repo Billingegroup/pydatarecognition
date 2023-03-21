@@ -6,8 +6,7 @@ import pytest
 import os
 
 from pydatarecognition.fsclient import FileSystemClient
-from pydatarecognition.runcontrol import DEFAULT_RC, connect_db
-from tests.inputs.pydr_rc import pydr_rc
+from pydatarecognition.runcontrol import connect_db
 
 #
 # def test_dump_json():
@@ -24,11 +23,8 @@ from tests.inputs.pydr_rc import pydr_rc
 #     assert actual == json_doc
 
 
-rc = DEFAULT_RC
-
-
 # FileSystemClient methods tested here
-def test_is_alive():
+def test_is_alive(rc):
     expected = True  # filesystem is always alive!
     fsc = FileSystemClient(rc)
     actual = fsc.is_alive()
@@ -36,8 +32,7 @@ def test_is_alive():
     assert actual == expected
 
 
-def test_open():
-    rc._update(pydr_rc)
+def test_open(rc):
     fsc = FileSystemClient(rc)
     fsc.open()
 
@@ -50,8 +45,7 @@ def test_open():
     assert not fsc.closed
 
 
-def test_close():
-    rc._update(pydr_rc)
+def test_close(rc):
     fsc = FileSystemClient(rc)
     assert fsc.open
 
@@ -124,11 +118,7 @@ def test_all_documents():
 test_insert_cif = [{'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'},
                    {'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'hi'}]
 @pytest.mark.parametrize('tc', test_insert_cif)
-def test_insert_one(make_db, make_bad_db, tc):
-    db_path = make_db
-    pydr_rc['databases'][0]['url'] = db_path
-    rc._update(pydr_rc)  # TODO: Is there a way to update rc at a global scope so that we don't have to write this every time we run the test functions?
-
+def test_insert_one(make_db, rc, tc):
     client = FileSystemClient(rc)
     client.open()
 

@@ -10,6 +10,8 @@ from xonsh.lib import subprocess
 from xonsh.lib.os import rmtree
 from pydatarecognition.powdercif import storage, BUCKET_NAME
 from pydatarecognition.fsclient import dump_yaml
+from pydatarecognition.runcontrol import DEFAULT_RC
+from tests.inputs.pydr_rc import pydr_rc
 from tests.inputs.exemplars import EXEMPLARS
 from google.cloud.exceptions import Conflict
 from copy import deepcopy
@@ -20,6 +22,16 @@ MONGODB_DATABASE_NAME = "test"
 FS_DATABASE_NAME = "test"
 CIF_DIR = os.path.join(os.pardir, 'docs/examples/cifs/calculated')
 CIFJSON_COLLECTION_NAME = "cif_json"
+
+
+@pytest.fixture(scope="session")
+def rc(make_db):
+    rc = DEFAULT_RC
+    db_path = make_db
+    pydr_rc['databases'][0]['url'] = db_path
+    rc._update(pydr_rc)
+
+    return rc
 
 
 @pytest.fixture(scope="function")
