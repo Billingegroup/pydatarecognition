@@ -37,6 +37,7 @@ def test_is_alive():
 
 
 def test_open():
+    rc._update(pydr_rc)
     fsc = FileSystemClient(rc)
     fsc.open()
 
@@ -50,6 +51,7 @@ def test_open():
 
 
 def test_close():
+    rc._update(pydr_rc)
     fsc = FileSystemClient(rc)
     assert fsc.open
 
