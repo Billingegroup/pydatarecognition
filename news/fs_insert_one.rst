@@ -4,7 +4,7 @@
 
 **Changed:**
 
-* fs_insert_one function for the filesystem
+* insert_one function for the filesystem
 
 **Deprecated:**
 
