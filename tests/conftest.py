@@ -111,20 +111,23 @@ def make_bad_db():
         else:
             d = {example["_id"]: example}
         d.update({"bad": {"_id": "bad", "bad": True}})
-        if coll == "presentations":
+        if coll == "measured":
             d.update(
                 {
                     "bad_inst": {
                         "_id": "bad_inst",
-                        "institution": "noinstitution",
-                        "department": "nodept",
+                        "wavelength": "nowavelength",
+                        "ttheta": "nottheta",
+                        "q": "noq",
+                        "intensity": "nointensity"
                     }
                 }
             )
         dump_yaml("db/{}.yaml".format(coll), d)
     yield repo
     os.chdir(cwd)
-    rmtree(repo)
+    if not OUTPUT_FAKE_DB:
+        rmtree(repo)
 
 
 def cif_mongodb_client(populated: bool = False) -> MongoClient:
@@ -251,6 +254,3 @@ def example_cifs_to_mongo(mongo_db_name):
         except Exception as e:
             print(e)
     return client
-
-if __name__ == '__main__':
-    example_cifs_to_mongo('test')
