@@ -1,8 +1,13 @@
 from collections import defaultdict
+from pathlib import Path
+from testfixtures import TempDirectory
 
 import pytest
+import os
 
 from pydatarecognition.fsclient import FileSystemClient
+from pydatarecognition.runcontrol import DEFAULT_RC, connect_db
+from tests.inputs.pydr_rc import pydr_rc
 
 #
 # def test_dump_json():
@@ -18,20 +23,8 @@ from pydatarecognition.fsclient import FileSystemClient
 #         actual = f.read()
 #     assert actual == json_doc
 
-# todo:
-# build a runcontrol object as in regolith.  have it created globally in the
-# tests for  reuse in all the tests (look for DEFAULT_RC in regoith tests)
-# for now:
-# DEFAULT_RC = RunControl(
-#     _validators=DEFAULT_VALIDATORS,
-#     builddir="_build",
-#     mongodbpath=property(lambda self: os.path.join(self.builddir, "_dbpath")),
-#     user_config=os.path.expanduser("~/.config/regolith/user.json"),
-#     force=False,
-#     database=None
-# )
-DEFAULT_RC = {}
 rc = DEFAULT_RC
+rc._update(pydr_rc)
 
 
 # FileSystemClient methods tested here
@@ -47,7 +40,10 @@ def test_open():
     fsc = FileSystemClient(rc)
     fsc.open()
 
-    # assert fsc.dbs == rc.databases
+    actual = fsc.dbs
+    expected = connect_db(rc)[1]
+    assert actual == expected
+
     assert isinstance(fsc.dbs, type(defaultdict(lambda: defaultdict(dict))))
     assert isinstance(fsc.chained_db, type(dict()))
     assert not fsc.closed
@@ -56,10 +52,14 @@ def test_open():
 def test_close():
     fsc = FileSystemClient(rc)
     assert fsc.open
-    # assert fsc.dbs == rc.databases
+
+    actual = fsc.dbs
+    expected = connect_db(rc)[1]
+    assert actual == expected
+
     assert isinstance(fsc.dbs, type(defaultdict(lambda: defaultdict(dict))))
 
-    actual = fsc.close()
+    fsc.close()
     assert fsc.dbs is None
     assert fsc.closed
 
@@ -121,7 +121,18 @@ def test_all_documents():
 
 @pytest.mark.skip("Not written")
 def test_insert_one():
-    pass
+    client = FileSystemClient(rc)
+
+    # with TempDirectory() as di:
+    #     temp_dir = Path(di.path)
+    #     cif_bitstream = bytearray(cm[0], 'utf8')
+    #     d.write(f"test_cif.cif",
+    #             cif_bitstream)
+    #     test_cif_path = temp_dir / f"test_cif.cif"
+
+    client.insert_one("local", "calculated", test_cif_json)
+
+    assert True
 
 
 @pytest.mark.skip("Not written")

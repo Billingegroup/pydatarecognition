@@ -239,6 +239,7 @@ def powdercif_to_json(po):
 
     return json_object
 
+
 def json_dump(json_object, output_path):
     with open(output_path, 'w') as f:
         json.dump(json_object, f)
@@ -342,6 +343,7 @@ def terminal_print(rank_doi_score_txt):
     print('-' * 81)
     return None
 
+
 def print_story(user_input, args, ciffiles, skipped_cifs):
     frame_dashchars = '-'*80
     print(f'{frame_dashchars}\nInput data file: {user_input.name}\n'
@@ -354,7 +356,6 @@ def print_story(user_input, args, ciffiles, skipped_cifs):
         print(f"    {cif[0]} because {cif[1]}")
     print(f'Done working with cifs.\n{frame_dashchars}\nGetting references...')
 
+
 if __name__=="__main__":
-    import pathlib
-    toubling_path = pathlib.Path(os.path.join(os.pardir, 'docs/examples/cifs/measured/ps5069IIIsup4.rtv.combined.cif'))
-    json_dump(powdercif_to_json(cif_read(toubling_path)), pathlib.Path('../test1.json'))
+    pass
