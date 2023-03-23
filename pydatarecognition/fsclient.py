@@ -238,8 +238,14 @@ class FileSystemClient:
 
     def insert_one(self, dbname, collname, doc):
         """Inserts one document to a database/collection."""
-        coll = self.dbs[dbname][collname]
-        coll[doc["_id"]] = doc
+        if not isinstance(doc, dict):
+            raise TypeError('Wrong document format bad_doc_format')
+        else:
+            if '_id' not in doc:
+                raise KeyError('Bad value in database entry key bad_entry_key')
+            else:
+                coll = self.dbs[dbname][collname]
+                coll[doc["_id"]] = doc
 
     def insert_many(self, dbname, collname, docs):
         """Inserts many documents into a database/collection."""

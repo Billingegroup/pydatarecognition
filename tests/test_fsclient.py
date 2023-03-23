@@ -117,9 +117,9 @@ def test_all_documents():
     pass
 
 
-test_insert_cif = [({'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'},
+test_insert_json = [({'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'},
                    {'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'})]
-@pytest.mark.parametrize('input, result', test_insert_cif)
+@pytest.mark.parametrize('input, result', test_insert_json)
 def test_insert_one(rc, input, result):
     client = FileSystemClient(rc)
     client.open()
@@ -131,10 +131,10 @@ def test_insert_one(rc, input, result):
 
     client.insert_one(dbname, collname, input)
 
-    assert list(client.dbs[dbname][collname].values())[-1] == result
+    assert client.find_one(dbname, collname, {'_id': 'ts1129'}) == result
 
 
-test_insert_cif_bad = [{'bad_case_test_dict': 'bad'}, 'bad_case_test_str']
+test_insert_json_bad = [{'bad_case_test_dict': 'bad'}, 'bad_case_test_str']
 def test_insert_one_bad(rc):
     client = FileSystemClient(rc)
     client.open()
@@ -144,15 +144,12 @@ def test_insert_one_bad(rc):
 
     client.load_database(pydr_rc['databases'][0])
 
-    with pytest.raises(KeyError) as excinfo:
-        client.insert_one(dbname, collname, test_insert_cif_bad[0])
-    assert '_id' in str(excinfo.value)
-    print(excinfo)
+    with pytest.raises(KeyError, match=r"Bad value in database entry key bad_entry_key"):
+        client.insert_one(dbname, collname, test_insert_json_bad[0])
 
-    with pytest.raises(TypeError) as excinfo:
-        client.insert_one(dbname, collname, test_insert_cif_bad[1])
-    assert 'dict' not in str(excinfo.value)
-    print(excinfo)
+    with pytest.raises(TypeError, match=r"Wrong document format bad_doc_format"):
+        client.insert_one(dbname, collname, test_insert_json_bad[1])
+
 
 @pytest.mark.skip("Not written")
 def test_insert_many():
