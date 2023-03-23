@@ -128,6 +128,7 @@ def test_insert_one(rc, input, result):
     collname = 'calculated'
 
     client.load_database(pydr_rc['databases'][0])
+
     client.insert_one(dbname, collname, input)
 
     assert list(client.dbs[dbname][collname].values())[-1] == result
@@ -143,11 +144,15 @@ def test_insert_one_bad(rc):
 
     client.load_database(pydr_rc['databases'][0])
 
-    with pytest.raises(KeyError):
+    with pytest.raises(KeyError) as excinfo:
         client.insert_one(dbname, collname, test_insert_cif_bad[0])
-    with pytest.raises(TypeError):
-        client.insert_one(dbname, collname, test_insert_cif_bad[1])
+    assert '_id' in str(excinfo.value)
+    print(excinfo)
 
+    with pytest.raises(TypeError) as excinfo:
+        client.insert_one(dbname, collname, test_insert_cif_bad[1])
+    assert 'dict' not in str(excinfo.value)
+    print(excinfo)
 
 @pytest.mark.skip("Not written")
 def test_insert_many():
