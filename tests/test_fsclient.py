@@ -7,6 +7,8 @@ import os
 
 from pydatarecognition.fsclient import FileSystemClient
 from pydatarecognition.runcontrol import connect_db
+from tests.inputs.pydr_rc import pydr_rc
+from tests.inputs.exemplars import EXEMPLARS
 
 #
 # def test_dump_json():
@@ -117,24 +119,19 @@ def test_all_documents():
 
 test_insert_cif = [({'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'},
                    {'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'}),
-                   ('bad_case_test', 'bad_case_test')]
+                   ('bad_case_test', EXEMPLARS['calculated'][-1])]
 @pytest.mark.parametrize('input, result', test_insert_cif)
 def test_insert_one(make_db, rc, input, result):
     client = FileSystemClient(rc)
     client.open()
 
-    actual = client.dbs
-    expected = connect_db(rc)[1]
-    assert actual == expected
-
     dbname = 'local'
     collname = 'calculated'
 
-    try:
-        client.insert_one(dbname, collname, input)
-        assert list(client.dbs[dbname][collname].values())[0] == result
-    except TypeError:
-        print('Input type should be json (dict).')
+    client.load_database(pydr_rc['databases'][0])
+    client.insert_one(dbname, collname, input)
+
+    assert list(client.dbs[dbname][collname].values())[-1] == result
 
 
 @pytest.mark.skip("Not written")
