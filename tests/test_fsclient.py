@@ -118,10 +118,9 @@ def test_all_documents():
 
 
 test_insert_cif = [({'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'},
-                   {'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'}),
-                   ('bad_case_test', EXEMPLARS['calculated'][-1])]
+                   {'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'})]
 @pytest.mark.parametrize('input, result', test_insert_cif)
-def test_insert_one(make_db, rc, input, result):
+def test_insert_one(rc, input, result):
     client = FileSystemClient(rc)
     client.open()
 
@@ -132,6 +131,22 @@ def test_insert_one(make_db, rc, input, result):
     client.insert_one(dbname, collname, input)
 
     assert list(client.dbs[dbname][collname].values())[-1] == result
+
+
+test_insert_cif_bad = [{'bad_case_test_dict': 'bad'}, 'bad_case_test_str']
+def test_insert_one_bad(rc):
+    client = FileSystemClient(rc)
+    client.open()
+
+    dbname = 'local'
+    collname = 'calculated'
+
+    client.load_database(pydr_rc['databases'][0])
+
+    with pytest.raises(KeyError):
+        client.insert_one(dbname, collname, test_insert_cif_bad[0])
+    with pytest.raises(TypeError):
+        client.insert_one(dbname, collname, test_insert_cif_bad[1])
 
 
 @pytest.mark.skip("Not written")

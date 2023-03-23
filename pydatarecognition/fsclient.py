@@ -238,11 +238,8 @@ class FileSystemClient:
 
     def insert_one(self, dbname, collname, doc):
         """Inserts one document to a database/collection."""
-        try:
-            coll = self.dbs[dbname][collname]
-            coll[doc["_id"]] = doc
-        except TypeError:
-            return 'Input type should be json (dict).'
+        coll = self.dbs[dbname][collname]
+        coll[doc["_id"]] = doc
 
     def insert_many(self, dbname, collname, docs):
         """Inserts many documents into a database/collection."""
