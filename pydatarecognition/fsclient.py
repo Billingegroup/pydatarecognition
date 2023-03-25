@@ -150,15 +150,13 @@ class FileSystemClient:
         for f in [
             file
             for file in iglob(os.path.join(dbpath, "*.json"))
-            if file not in db["blacklist"]
-               and len(db["whitelist"]) == 0
-               or os.path.basename(file).split(".")[0] in db["whitelist"]
         ]:
-            collfilename = os.path.split(f)[-1]
-            base, ext = os.path.splitext(collfilename)
-            self._collfiletypes[base] = "json"
-            print("loading " + f + "...", file=sys.stderr)
-            dbs[db["name"]][base] = load_json(f)
+            # collfilename = os.path.split(f)[-1]
+            # base, ext = os.path.splitext(collfilename)
+            # self._collfiletypes[base] = "json"
+            # print("loading " + f + "...", file=sys.stderr)
+            # dbs[db["name"]][base] = load_json(f)
+
 
     def load_yaml(self, db, dbpath):
         """Loads the YAML part of a database."""
@@ -236,7 +234,7 @@ class FileSystemClient:
             return deepcopy(self.chained_db.get(collname, {})).values()
         return self.chained_db.get(collname, {}).values()
 
-    def insert_one(self, dbname, collname, doc):
+    def insert_one(self, filename, doc):
         """Inserts one document to a database/collection."""
         if not isinstance(doc, dict):
             raise TypeError('Wrong document format bad_doc_format')
@@ -244,8 +242,9 @@ class FileSystemClient:
             if '_id' not in doc:
                 raise KeyError('Bad value in database entry key bad_entry_key')
             else:
-                coll = self.dbs[dbname][collname]
-                coll[doc["_id"]] = doc
+                json_list = load_json(filename)
+                json_list.append(doc)
+                dump_json(json_list)
 
     def insert_many(self, dbname, collname, docs):
         """Inserts many documents into a database/collection."""
@@ -277,3 +276,8 @@ class FileSystemClient:
         newdoc = dict(filter if doc is None else doc)
         newdoc.update(update)
         coll[newdoc["_id"]] = newdoc
+
+
+if __name__ == '__main__':
+    from tests.inputs.exemplars import EXEMPLARS
+    print(json.load(EXEMPLARS['calculated']))

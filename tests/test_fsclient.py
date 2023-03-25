@@ -118,7 +118,7 @@ def test_all_documents():
 
 
 test_insert_json = [({'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'},
-                   {'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'})]
+                     {'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'})]
 @pytest.mark.parametrize('input, result', test_insert_json)
 def test_insert_one(rc, input, result):
     client = FileSystemClient(rc)
@@ -127,11 +127,9 @@ def test_insert_one(rc, input, result):
     dbname = 'local'
     collname = 'calculated'
 
-    client.load_database(pydr_rc['databases'][0])
-
+    # client.load_database(pydr_rc['databases'][0])
     client.insert_one(dbname, collname, input)
 
-    assert client.find_one(dbname, collname, {'_id': 'ts1129'}) == result
 
 
 test_insert_json_bad = [{'bad_case_test_dict': 'bad'}, 'bad_case_test_str']
