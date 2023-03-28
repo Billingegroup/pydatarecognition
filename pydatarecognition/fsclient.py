@@ -151,11 +151,11 @@ class FileSystemClient:
             file
             for file in iglob(os.path.join(dbpath, "*.json"))
         ]:
-            # collfilename = os.path.split(f)[-1]
-            # base, ext = os.path.splitext(collfilename)
-            # self._collfiletypes[base] = "json"
-            # print("loading " + f + "...", file=sys.stderr)
-            # dbs[db["name"]][base] = load_json(f)
+            collfilename = os.path.split(f)[-1]
+            base, ext = os.path.splitext(collfilename)
+            self._collfiletypes[base] = "json"
+            print("loading " + f + "...", file=sys.stderr)
+            dbs[db["name"]][base] = load_json(f)
 
 
     def load_yaml(self, db, dbpath):
@@ -234,7 +234,7 @@ class FileSystemClient:
             return deepcopy(self.chained_db.get(collname, {})).values()
         return self.chained_db.get(collname, {}).values()
 
-    def insert_one(self, filename, doc):
+    def insert_one(self, filename, dbname, collname, doc):
         """Inserts one document to a database/collection."""
         if not isinstance(doc, dict):
             raise TypeError('Wrong document format bad_doc_format')
@@ -242,9 +242,11 @@ class FileSystemClient:
             if '_id' not in doc:
                 raise KeyError('Bad value in database entry key bad_entry_key')
             else:
-                json_list = load_json(filename)
-                json_list.append(doc)
-                dump_json(json_list)
+                with open(filename, 'r+') as file:
+                    file_data = json.load(file)
+                    file_data[dbname][collname].append(doc)
+                    file.seek(0)
+                    json.dump(file_data, file, indent=4)
 
     def insert_many(self, dbname, collname, docs):
         """Inserts many documents into a database/collection."""
