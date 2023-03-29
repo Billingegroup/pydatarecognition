@@ -9,7 +9,7 @@ from pymongo import errors as mongo_errors
 from xonsh.lib import subprocess
 from xonsh.lib.os import rmtree
 from pydatarecognition.powdercif import storage, BUCKET_NAME
-from pydatarecognition.fsclient import dump_yaml
+from pydatarecognition.fsclient import dump_json, dump_json_test
 from pydatarecognition.runcontrol import DEFAULT_RC
 from tests.inputs.pydr_rc import pydr_rc
 from tests.inputs.exemplars import EXEMPLARS
@@ -241,7 +241,7 @@ def example_cifs_to_fs(fspath, collection_list=None):
             d = {dd["_id"]: dd for dd in example}
         else:
             d = {example["_id"]: example}
-        dump_yaml("{}.yaml".format(coll), d)
+        dump_json_test("{}.json".format(coll), d)
     os.chdir(cwd)
 
 

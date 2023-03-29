@@ -4,6 +4,7 @@ from testfixtures import TempDirectory
 
 import pytest
 import os
+import json
 
 from pydatarecognition.fsclient import FileSystemClient
 from pydatarecognition.runcontrol import connect_db
@@ -124,12 +125,22 @@ def test_insert_one(rc, input, result):
     client = FileSystemClient(rc)
     client.open()
 
-    dbname = 'local'
     collname = 'calculated'
 
-    # client.load_database(pydr_rc['databases'][0])
-    client.insert_one(dbname, collname, input)
+    path = pydr_rc['databases'][0]['url'] + f'/db/{collname}.json'
 
+    len_bef = 0
+    len_after = 0
+
+    with open(path, 'r+') as file:
+        len_bef = len(json.load(file))
+
+    client.insert_one(path, input)
+
+    with open(path, 'r+') as file:
+        len_after = len(json.load(file))
+
+    assert len_after == len_bef + 1
 
 
 test_insert_json_bad = [{'bad_case_test_dict': 'bad'}, 'bad_case_test_str']
@@ -137,16 +148,15 @@ def test_insert_one_bad(rc):
     client = FileSystemClient(rc)
     client.open()
 
-    dbname = 'local'
     collname = 'calculated'
 
-    client.load_database(pydr_rc['databases'][0])
+    path = pydr_rc['databases'][0]['url'] + f'/db/{collname}.json'
 
     with pytest.raises(KeyError, match=r"Bad value in database entry key bad_entry_key"):
-        client.insert_one(dbname, collname, test_insert_json_bad[0])
+        client.insert_one(path, test_insert_json_bad[0])
 
     with pytest.raises(TypeError, match=r"Wrong document format bad_doc_format"):
-        client.insert_one(dbname, collname, test_insert_json_bad[1])
+        client.insert_one(path, test_insert_json_bad[1])
 
 
 @pytest.mark.skip("Not written")

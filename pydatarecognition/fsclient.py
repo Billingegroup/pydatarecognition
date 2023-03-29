@@ -79,6 +79,12 @@ def dump_json(filename, docs, date_handler=None):
         fh.write(s)
 
 
+def dump_json_test(filename, docs, date_handler=None):
+    with open(filename, 'w') as file:
+        file.seek(0)
+        json.dump(docs, file, default=date_handler)
+
+
 def load_yaml(filename, return_inst=False, loader=None):
     """Loads a YAML file and returns a dict of its documents."""
     if loader is None:
@@ -157,7 +163,6 @@ class FileSystemClient:
             print("loading " + f + "...", file=sys.stderr)
             dbs[db["name"]][base] = load_json(f)
 
-
     def load_yaml(self, db, dbpath):
         """Loads the YAML part of a database."""
         dbs = self.dbs
@@ -234,7 +239,7 @@ class FileSystemClient:
             return deepcopy(self.chained_db.get(collname, {})).values()
         return self.chained_db.get(collname, {}).values()
 
-    def insert_one(self, filename, dbname, collname, doc):
+    def insert_one(self, filename, doc):
         """Inserts one document to a database/collection."""
         if not isinstance(doc, dict):
             raise TypeError('Wrong document format bad_doc_format')
@@ -244,7 +249,7 @@ class FileSystemClient:
             else:
                 with open(filename, 'r+') as file:
                     file_data = json.load(file)
-                    file_data[dbname][collname].append(doc)
+                    file_data[doc['_id']] = doc
                     file.seek(0)
                     json.dump(file_data, file, indent=4)
 
