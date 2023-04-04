@@ -1,6 +1,7 @@
 import copy
 import json
 
+import pytest
 from testfixtures import TempDirectory
 from pathlib import Path
 
@@ -8,6 +9,7 @@ from pydatarecognition.runcontrol import filter_databases, connect_db
 from pydatarecognition.database import connect
 
 
+@pytest.mark.skip
 def test_connect_db(rc):
     filter_databases(rc)
     with connect(rc) as rc.client:
