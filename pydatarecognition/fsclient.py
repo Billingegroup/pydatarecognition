@@ -61,6 +61,7 @@ def load_json(filename):
         lines = fh.readlines()
     for line in lines:
         doc = json.loads(line)
+        print(doc)
         docs[doc["_id"]] = doc
     return docs
 
@@ -239,7 +240,7 @@ class FileSystemClient:
             return deepcopy(self.chained_db.get(collname, {})).values()
         return self.chained_db.get(collname, {}).values()
 
-    def insert_one(self, filename, doc):
+    def insert_one(self, dbname, collname, doc):
         """Inserts one document to a database/collection."""
         if not isinstance(doc, dict):
             raise TypeError('Wrong document format bad_doc_format')
@@ -247,11 +248,20 @@ class FileSystemClient:
             if '_id' not in doc:
                 raise KeyError('Bad value in database entry key bad_entry_key')
             else:
-                with open(filename, 'r+') as file:
-                    file_data = json.load(file)
-                    file_data[doc['_id']] = doc
-                    file.seek(0)
-                    json.dump(file_data, file, indent=4)
+                dbpath = dbpathname(dbname, self.rc)
+                for f in [
+                    file
+                    for file in iglob(os.path.join(dbpath, f"{collname}.json"))
+                ]:
+                    collfilename = os.path.split(f)[-1]
+                    base, ext = os.path.splitext(collfilename)
+                    self._collfiletypes[base] = "json"
+                    with open(f, 'r+') as file:
+                        file_data = json.load(file)
+                        file_data[doc['_id']] = doc
+                        file.seek(0)
+                        # json.dump(file_data, file)
+                        dump_json(file, file_data)
 
     def insert_many(self, dbname, collname, docs):
         """Inserts many documents into a database/collection."""

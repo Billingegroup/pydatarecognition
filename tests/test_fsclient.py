@@ -127,7 +127,7 @@ def test_insert_one(rc, input, result):
 
     collname = 'calculated'
 
-    path = pydr_rc['databases'][0]['url'] + f'/db/{collname}.json'
+    path = os.path.join(rc.databases[0]['url'] + '/db', f'{collname}.json')
 
     len_bef = 0
     len_after = 0
@@ -135,7 +135,7 @@ def test_insert_one(rc, input, result):
     with open(path, 'r+') as file:
         len_bef = len(json.load(file))
 
-    client.insert_one(path, input)
+    client.insert_one(rc.databases[0], collname, input)
 
     with open(path, 'r+') as file:
         len_after = len(json.load(file))
@@ -150,13 +150,13 @@ def test_insert_one_bad(rc):
 
     collname = 'calculated'
 
-    path = pydr_rc['databases'][0]['url'] + f'/db/{collname}.json'
+    path = os.path.join(rc.databases[0]['url'] + '/db', f'{collname}.json')
 
     with pytest.raises(KeyError, match=r"Bad value in database entry key bad_entry_key"):
-        client.insert_one(path, test_insert_json_bad[0])
+        client.insert_one(rc.databases[0], collname, test_insert_json_bad[0])
 
     with pytest.raises(TypeError, match=r"Wrong document format bad_doc_format"):
-        client.insert_one(path, test_insert_json_bad[1])
+        client.insert_one(rc.databases[0], collname, test_insert_json_bad[1])
 
 
 @pytest.mark.skip("Not written")

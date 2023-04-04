@@ -17,7 +17,7 @@ from google.cloud.exceptions import Conflict
 from copy import deepcopy
 
 
-OUTPUT_FAKE_DB = False  # always turn it to false after you used it
+OUTPUT_FAKE_DB = True  # always turn it to false after you used it
 MONGODB_DATABASE_NAME = "test"
 FS_DATABASE_NAME = "test"
 CIF_DIR = os.path.join(os.pardir, 'docs/examples/cifs/calculated')
@@ -52,7 +52,8 @@ def make_db():
     """
     cwd = os.getcwd()
     name = "pydr_fake"
-    repo = os.path.join(tempfile.gettempdir(), name)
+    # repo = os.path.join(tempfile.gettempdir(), name)
+    repo = os.path.join(cwd, name)
     if os.path.exists(repo):
         rmtree(repo)
     os.mkdir(repo)
