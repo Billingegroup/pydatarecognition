@@ -1,8 +1,15 @@
 from collections import defaultdict
+from pathlib import Path
+from testfixtures import TempDirectory
 
 import pytest
+import os
+import json
 
 from pydatarecognition.fsclient import FileSystemClient
+from pydatarecognition.runcontrol import connect_db
+from tests.inputs.pydr_rc import pydr_rc
+from tests.inputs.exemplars import EXEMPLARS
 
 #
 # def test_dump_json():
@@ -18,24 +25,9 @@ from pydatarecognition.fsclient import FileSystemClient
 #         actual = f.read()
 #     assert actual == json_doc
 
-# todo:
-# build a runcontrol object as in regolith.  have it created globally in the
-# tests for  reuse in all the tests (look for DEFAULT_RC in regoith tests)
-# for now:
-# DEFAULT_RC = RunControl(
-#     _validators=DEFAULT_VALIDATORS,
-#     builddir="_build",
-#     mongodbpath=property(lambda self: os.path.join(self.builddir, "_dbpath")),
-#     user_config=os.path.expanduser("~/.config/regolith/user.json"),
-#     force=False,
-#     database=None
-# )
-DEFAULT_RC = {}
-rc = DEFAULT_RC
-
 
 # FileSystemClient methods tested here
-def test_is_alive():
+def test_is_alive(rc):
     expected = True  # filesystem is always alive!
     fsc = FileSystemClient(rc)
     actual = fsc.is_alive()
@@ -43,23 +35,30 @@ def test_is_alive():
     assert actual == expected
 
 
-def test_open():
+def test_open(rc):
     fsc = FileSystemClient(rc)
     fsc.open()
 
-    # assert fsc.dbs == rc.databases
+    actual = fsc.dbs
+    # expected = connect_db(rc)[1]
+    # assert actual == expected
+
     assert isinstance(fsc.dbs, type(defaultdict(lambda: defaultdict(dict))))
     assert isinstance(fsc.chained_db, type(dict()))
     assert not fsc.closed
 
 
-def test_close():
+def test_close(rc):
     fsc = FileSystemClient(rc)
     assert fsc.open
-    # assert fsc.dbs == rc.databases
+
+    actual = fsc.dbs
+    # expected = connect_db(rc)[1]
+    # assert actual == expected
+
     assert isinstance(fsc.dbs, type(defaultdict(lambda: defaultdict(dict))))
 
-    actual = fsc.close()
+    fsc.close()
     assert fsc.dbs is None
     assert fsc.closed
 
@@ -119,9 +118,45 @@ def test_all_documents():
     pass
 
 
-@pytest.mark.skip("Not written")
-def test_insert_one():
-    pass
+test_insert_json = [({'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'},
+                     {'intensity': [], 'q': [], 'ttheta': [], 'wavelength': 0.111111, '_id': 'ts1129'})]
+@pytest.mark.parametrize('input, result', test_insert_json)
+def test_insert_one(rc, input, result):
+    client = FileSystemClient(rc)
+    client.open()
+
+    collname = 'calculated'
+
+    path = os.path.join(rc.databases[0]['url'] + '/db', f'{collname}.json')
+
+    len_bef = 0
+    len_after = 0
+
+    with open(path, 'r+') as file:
+        len_bef = len(json.load(file))
+
+    client.insert_one(rc.databases[0], collname, input)
+
+    with open(path, 'r+') as file:
+        len_after = len(json.load(file))
+
+    assert len_after == len_bef + 1
+
+
+test_insert_json_bad = [{'bad_case_test_dict': 'bad'}, 'bad_case_test_str']
+def test_insert_one_bad(rc):
+    client = FileSystemClient(rc)
+    client.open()
+
+    collname = 'calculated'
+
+    path = os.path.join(rc.databases[0]['url'] + '/db', f'{collname}.json')
+
+    with pytest.raises(KeyError, match=r"Bad value in database entry key bad_entry_key"):
+        client.insert_one(rc.databases[0], collname, test_insert_json_bad[0])
+
+    with pytest.raises(TypeError, match=r"Wrong document format bad_doc_format"):
+        client.insert_one(rc.databases[0], collname, test_insert_json_bad[1])
 
 
 @pytest.mark.skip("Not written")

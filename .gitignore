@@ -154,3 +154,6 @@ dmypy.json
 pydatarecognition/secret_password.yml
 pydatarecognition/secret_password2.yml
 testing-cif-datarec-secret.json
+
+# pre-commit-hooks
+.pre-commit-config.yaml

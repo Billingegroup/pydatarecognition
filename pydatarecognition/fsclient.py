@@ -61,6 +61,7 @@ def load_json(filename):
         lines = fh.readlines()
     for line in lines:
         doc = json.loads(line)
+        print(doc)
         docs[doc["_id"]] = doc
     return docs
 
@@ -77,6 +78,12 @@ def dump_json(filename, docs, date_handler=None):
     s = "\n".join(lines)
     with open(filename, "w", encoding="utf-8") as fh:
         fh.write(s)
+
+
+def dump_json_test(filename, docs, date_handler=None):
+    with open(filename, 'w') as file:
+        file.seek(0)
+        json.dump(docs, file, default=date_handler)
 
 
 def load_yaml(filename, return_inst=False, loader=None):
@@ -150,9 +157,6 @@ class FileSystemClient:
         for f in [
             file
             for file in iglob(os.path.join(dbpath, "*.json"))
-            if file not in db["blacklist"]
-               and len(db["whitelist"]) == 0
-               or os.path.basename(file).split(".")[0] in db["whitelist"]
         ]:
             collfilename = os.path.split(f)[-1]
             base, ext = os.path.splitext(collfilename)
@@ -166,9 +170,6 @@ class FileSystemClient:
         for f in [
             file
             for file in iglob(os.path.join(dbpath, "*.y*ml"))
-            if file not in db["blacklist"]
-            and len(db["whitelist"]) == 0
-            or os.path.basename(file).split(".")[0] in db["whitelist"]
         ]:
             collfilename = os.path.split(f)[-1]
             base, ext = os.path.splitext(collfilename)
@@ -241,8 +242,26 @@ class FileSystemClient:
 
     def insert_one(self, dbname, collname, doc):
         """Inserts one document to a database/collection."""
-        coll = self.dbs[dbname][collname]
-        coll[doc["_id"]] = doc
+        if not isinstance(doc, dict):
+            raise TypeError('Wrong document format bad_doc_format')
+        else:
+            if '_id' not in doc:
+                raise KeyError('Bad value in database entry key bad_entry_key')
+            else:
+                dbpath = dbpathname(dbname, self.rc)
+                for f in [
+                    file
+                    for file in iglob(os.path.join(dbpath, f"{collname}.json"))
+                ]:
+                    collfilename = os.path.split(f)[-1]
+                    base, ext = os.path.splitext(collfilename)
+                    self._collfiletypes[base] = "json"
+                    with open(f, 'r+') as file:
+                        file_data = json.load(file)
+                        file_data[doc['_id']] = doc
+                        file.seek(0)
+                        # json.dump(file_data, file)
+                        dump_json(file, file_data)
 
     def insert_many(self, dbname, collname, docs):
         """Inserts many documents into a database/collection."""
@@ -274,3 +293,8 @@ class FileSystemClient:
         newdoc = dict(filter if doc is None else doc)
         newdoc.update(update)
         coll[newdoc["_id"]] = newdoc
+
+
+if __name__ == '__main__':
+    from tests.inputs.exemplars import EXEMPLARS
+    print(json.load(EXEMPLARS['calculated']))

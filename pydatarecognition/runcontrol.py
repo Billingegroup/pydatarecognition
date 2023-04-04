@@ -306,5 +306,6 @@ def connect_db(rc, colls=None):
     '''
     with connect(rc, dbs=colls) as rc.client:
         dbs = rc.client.dbs
-        chained_db = rc.client.chained_db
-    return chained_db, dbs
+        # chained_db = rc.client.chained_db
+    # return chained_db, dbs
+    return dbs

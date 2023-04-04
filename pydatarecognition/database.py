@@ -87,7 +87,8 @@ def open_dbs(rc, dbs=None):
                 if k in chained_db[base]:
                     chained_db[base][k].maps.append(v)
                 else:
-                    chained_db[base][k] = ChainDB(v)
+                    # chained_db[base][k] = ChainDB(v)
+                    pass
     client.chained_db = chained_db
     return client
 
